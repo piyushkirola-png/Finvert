@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const cron = require("node-cron");
+const compression = require("compression");
 
 // Import routes
 const authRoutes = require("./src/routes/auth.routes");
@@ -83,6 +84,7 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(compression());
 
 // ========== RATE LIMITING MIDDLEWARE ==========
 

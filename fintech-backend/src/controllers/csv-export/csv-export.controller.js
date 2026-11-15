@@ -44,6 +44,8 @@ class CsvExportController {
       gatewayName,
       sortBy,
       sortOrder,
+      transactionId,
+      referenceId,
     } = query;
 
     if (status && status !== "All" && status !== "all") {
@@ -125,6 +127,23 @@ class CsvExportController {
         value: parseInt(payOutRequestId),
       });
     }
+
+    if (transactionId) {
+      filters.push({
+        property: "transactionId",
+        operator: "contains",
+        value: transactionId,
+      });
+    }
+    if (referenceId) {
+      filters.push({
+        property: "referenceId",
+        operator: "contains",
+        value: referenceId,
+      });
+    }
+
+    return filters.length > 0 ? filters : null;
 
     return filters.length > 0 ? filters : null;
   }

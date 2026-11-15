@@ -5,6 +5,7 @@ import logo from "../../assets/logo.png";
 import { Check, RefreshCw } from "lucide-react";
 import { useAuth } from "../../components/context/AuthContext";
 import type { Role } from "../../types/auth";
+import { toast } from "sonner";
 
 const GATEWAYS = [
   { name: "Airpay", src: "/gateways/airpay.png" },
@@ -85,7 +86,7 @@ export default function Login() {
     if (loading || showSuccess) return;
 
     if (captchaInput.trim().toUpperCase() !== captcha) {
-      setErrorMessage("Invalid captcha. Please try again.");
+      toast.error("Invalid captcha. Please try again.");
       refreshCaptcha();
       return;
     }
@@ -96,7 +97,6 @@ export default function Login() {
       await login({ email, password }, role);
       setShowSuccess(true);
       refreshCaptcha();
-      // Wait 2 seconds on the splash screen before redirecting
       redirectTimer.current = setTimeout(
         () => navigate("/dashboard", { replace: true }),
         2000,
@@ -104,8 +104,8 @@ export default function Login() {
     } catch (error: any) {
       setErrorMessage(
         error?.response?.data?.message ||
-          error?.message ||
-          "Invalid credentials",
+        error?.message ||
+        "Invalid credentials",
       );
       refreshCaptcha();
       setLoading(false);
@@ -454,13 +454,12 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={loading || !canSubmit}
-                    className={`w-full py-3.5 rounded-lg font-bold text-[15px] text-white transition-colors ${
-                      loading
+                    className={`w-full py-3.5 rounded-lg font-bold text-[15px] text-white transition-colors ${loading
                         ? "bg-[#6B3FE0]/60 cursor-not-allowed"
                         : canSubmit
                           ? "bg-[#6B3FE0] hover:bg-[#5a31c9]"
                           : "bg-[#6B3FE0]/40 cursor-not-allowed"
-                    }`}
+                      }`}
                   >
                     {loading ? "Authenticating..." : "Enter Dashboard"}
                   </button>
@@ -529,13 +528,12 @@ export default function Login() {
                     <button
                       type="submit"
                       disabled={loading || !canSubmit}
-                      className={`w-full py-3.5 rounded-lg font-semibold text-[15px] text-white transition-colors ${
-                        loading
+                      className={`w-full py-3.5 rounded-lg font-semibold text-[15px] text-white transition-colors ${loading
                           ? "bg-blue-300 cursor-not-allowed"
                           : canSubmit
                             ? "bg-blue-500 hover:bg-blue-600"
                             : "bg-blue-300 cursor-not-allowed"
-                      }`}
+                        }`}
                     >
                       {loading ? "Authenticating..." : "Enter Dashboard"}
                     </button>

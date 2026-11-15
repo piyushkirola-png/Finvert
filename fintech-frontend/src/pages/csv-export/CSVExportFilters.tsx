@@ -11,7 +11,7 @@ type CSVExportFiltersProps = {
   setStatusFilter: (status: string) => void;
 };
 
-const statusOptions = ["All", "COMPLETED", "FAILED"];
+const statusOptions = ["All", "COMPLETED", "PROCESSING", "FAILED"];
 
 export default function CSVExportFilters({
   filterType,
