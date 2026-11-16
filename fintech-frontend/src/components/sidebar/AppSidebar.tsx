@@ -95,13 +95,17 @@ export default function AppSidebar() {
   return (
     <>
       <aside className="w-64 h-screen overflow-y-auto bg-slate-900 text-slate-100 flex flex-col">
-        {/* Header with logo */}
-        <div className="px-5 py-5 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="DCvPay" className="w-8 h-8 object-contain" />
+        {/* Header with big centered logo */}
+        <div className="px-5 py-6 border-b border-slate-800">
+          <div className="flex flex-col items-center text-center gap-3">
+            <img
+              src={logo}
+              alt="DCvPay"
+              className="w-16 h-16 object-contain"
+            />
             <div>
               <h1 className="text-sm font-semibold text-white">{title}</h1>
-              <p className="text-xs text-slate-400">{subtitle}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
             </div>
           </div>
         </div>
@@ -117,11 +121,10 @@ export default function AppSidebar() {
               <div key={section.title}>
                 <button
                   onClick={() => toggleSection(section.title)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition ${
-                    active
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition ${active
                       ? "bg-slate-800 text-white"
                       : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <SectionIcon size={16} />
@@ -148,11 +151,10 @@ export default function AppSidebar() {
                           <div key={item.label}>
                             <button
                               onClick={() => toggleSection(item.label)}
-                              className={`w-full flex items-center justify-between px-3 py-1.5 rounded-md text-sm transition ${
-                                hasActiveChild
+                              className={`w-full flex items-center justify-between px-3 py-1.5 rounded-md text-sm transition ${hasActiveChild
                                   ? "text-white bg-slate-800/60"
                                   : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2">
                                 <ItemIcon size={14} />
@@ -172,11 +174,10 @@ export default function AppSidebar() {
                                     <button
                                       key={child.path}
                                       onClick={() => navigate(child.path)}
-                                      className={`w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${
-                                        isActive(child.path)
+                                      className={`w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${isActive(child.path)
                                           ? "bg-slate-800 text-white font-medium"
                                           : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-                                      }`}
+                                        }`}
                                     >
                                       {ChildIcon ? (
                                         <ChildIcon size={13} />
@@ -195,11 +196,10 @@ export default function AppSidebar() {
                         <button
                           key={item.path}
                           onClick={() => item.path && navigate(item.path)}
-                          className={`w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${
-                            item.path && isActive(item.path)
+                          className={`w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${item.path && isActive(item.path)
                               ? "bg-slate-800 text-white font-medium"
                               : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-                          }`}
+                            }`}
                         >
                           <ItemIcon size={14} />
                           {item.label}
