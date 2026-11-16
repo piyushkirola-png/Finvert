@@ -1,4 +1,6 @@
 const payInRequestsService = require("./payin-requests.service");
+const { cacheAside, buildKey } = require("../../redis/redis.service");
+const { PAYIN_DASHBOARD_STATS } = require("../../redis/redis.keys");
 const { validationResult } = require("express-validator");
 const prisma = require("../../../config/prisma");
 
@@ -347,56 +349,65 @@ const remove = async (req, res) => {
  */
 const getDashboardStats = async (req, res) => {
   try {
-    let startDate, endDate;
+    const cacheKey = buildKey(PAYIN_DASHBOARD_STATS, {
+      role: req.user?.role,
+      merchantId: req.user?.merchantId,
+      userId: req.user?.id,
+      startDate: req.query.startDate || null,
+      endDate: req.query.endDate || null,
+    });
+    const result = await cacheAside(cacheKey, 30, async () => {
+      let startDate, endDate;
 
-    if (req.query.startDate && req.query.endDate) {
-      startDate = new Date(req.query.startDate);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(req.query.endDate);
-      endDate.setHours(23, 59, 59, 999);
-    } else {
-      // Default to today
-      startDate = new Date();
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date();
-      endDate.setHours(23, 59, 59, 999);
-    }
-
-    const where = {};
-
-    if (req.user.role !== "ADMIN" && req.user.role !== "SUPER_ADMIN") {
-      if (!req.user.merchantId) {
-        return res.status(403).json({ error: "No merchant associated" });
+      if (req.query.startDate && req.query.endDate) {
+        startDate = new Date(req.query.startDate);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(req.query.endDate);
+        endDate.setHours(23, 59, 59, 999);
+      } else {
+        startDate = new Date();
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date();
+        endDate.setHours(23, 59, 59, 999);
       }
-      where.merchantId = req.user.merchantId;
-      where.userId = req.user.id;
-    }
 
-    // USE THE DYNAMIC DATES
-    where.requestedAt = {
-      gte: startDate,
-      lte: endDate,
-    };
+      const where = {};
 
-    const [total, pending, completed, failed] = await Promise.all([
-      prisma.payInRequest.count({ where }),
-      prisma.payInRequest.count({ where: { ...where, status: "PENDING" } }),
-      prisma.payInRequest.count({ where: { ...where, status: "COMPLETED" } }),
-      prisma.payInRequest.count({ where: { ...where, status: "FAILED" } }),
-    ]);
+      if (req.user.role !== "ADMIN" && req.user.role !== "SUPER_ADMIN") {
+        if (!req.user.merchantId) {
+          return res.status(403).json({ error: "No merchant associated" });
+        }
+        where.merchantId = req.user.merchantId;
+        where.userId = req.user.id;
+      }
 
-    const amountAggregate = await prisma.payInRequest.aggregate({
-      where: { ...where, status: "COMPLETED" },
-      _sum: { amount: true },
+      // USE THE DYNAMIC DATES
+      where.requestedAt = {
+        gte: startDate,
+        lte: endDate,
+      };
+
+      const [total, pending, completed, failed] = await Promise.all([
+        prisma.payInRequest.count({ where }),
+        prisma.payInRequest.count({ where: { ...where, status: "PENDING" } }),
+        prisma.payInRequest.count({ where: { ...where, status: "COMPLETED" } }),
+        prisma.payInRequest.count({ where: { ...where, status: "FAILED" } }),
+      ]);
+
+      const amountAggregate = await prisma.payInRequest.aggregate({
+        where: { ...where, status: "COMPLETED" },
+        _sum: { amount: true },
+      });
+
+      return {
+        total: total || 0,
+        pending: pending || 0,
+        approved: completed || 0,
+        rejected: failed || 0,
+        totalAmount: Number(amountAggregate._sum.amount || 0),
+      };
     });
-
-    res.json({
-      total: total || 0,
-      pending: pending || 0,
-      approved: completed || 0,
-      rejected: failed || 0,
-      totalAmount: Number(amountAggregate._sum.amount || 0),
-    });
+    res.json(result);
   } catch (error) {
     console.error("Dashboard stats error:", error);
     res.status(500).json({ error: error.message });

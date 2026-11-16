@@ -1,74 +1,134 @@
 const prisma = require("../../../config/prisma");
+const {
+  cacheAside,
+  buildKey,
+  invalidate,
+} = require("../../redis/redis.service");
+const {
+  PAYOUT_WALLET_LIST,
+  PAYOUT_WALLET_SUMMARY,
+} = require("../../redis/redis.keys");
 
 class PayoutWalletService {
   async getWalletTransactions(filters = {}) {
-    try {
-      const {
-        offset = 0,
-        limit = 10,
-        type,
-        merchantId,
-        userId,
-        transactionId,
-        referenceId,
-        search,
-        amountMin,
-        amountMax,
-        startDate,
-        endDate,
-      } = filters;
+    const cacheKey = buildKey(PAYOUT_WALLET_LIST, filters);
+    return cacheAside(cacheKey, 15, async () => {
+      try {
+        const {
+          offset = 0,
+          limit = 10,
+          type,
+          merchantId,
+          userId,
+          transactionId,
+          referenceId,
+          search,
+          amountMin,
+          amountMax,
+          startDate,
+          endDate,
+        } = filters;
 
-      const where = {};
+        const where = {};
 
-      if (type && type !== "All") {
-        where.type = type;
-      }
-
-      if (merchantId) {
-        where.merchantId = merchantId;
-      }
-
-      if (userId) {
-        where.userId = userId;
-      }
-
-      if (transactionId) {
-        where.transactionId = { contains: transactionId };
-      }
-
-      if (referenceId) {
-        where.referenceId = { contains: referenceId, mode: "insensitive" };
-      }
-
-      if (search) {
-        where.description = { contains: search, mode: "insensitive" };
-      }
-
-      if (amountMin || amountMax) {
-        where.amount = {};
-        if (amountMin !== undefined && amountMin !== null && amountMin !== "")
-          where.amount.gte = Number(amountMin);
-        if (amountMax !== undefined && amountMax !== null && amountMax !== "")
-          where.amount.lte = Number(amountMax);
-      }
-
-      if (startDate || endDate) {
-        where.transactionDate = {};
-        if (startDate) {
-          where.transactionDate.gte = new Date(startDate);
+        if (type && type !== "All") {
+          where.type = type;
         }
-        if (endDate) {
-          where.transactionDate.lte = new Date(endDate);
-        }
-      }
 
-      const [total, data] = await Promise.all([
-        prisma.payOutWallet.count({ where }),
-        prisma.payOutWallet.findMany({
+        if (merchantId) {
+          where.merchantId = merchantId;
+        }
+
+        if (userId) {
+          where.userId = userId;
+        }
+
+        if (transactionId) {
+          where.transactionId = { contains: transactionId };
+        }
+
+        if (referenceId) {
+          where.referenceId = { contains: referenceId, mode: "insensitive" };
+        }
+
+        if (search) {
+          where.description = { contains: search, mode: "insensitive" };
+        }
+
+        if (amountMin || amountMax) {
+          where.amount = {};
+          if (amountMin !== undefined && amountMin !== null && amountMin !== "")
+            where.amount.gte = Number(amountMin);
+          if (amountMax !== undefined && amountMax !== null && amountMax !== "")
+            where.amount.lte = Number(amountMax);
+        }
+
+        if (startDate || endDate) {
+          where.transactionDate = {};
+          if (startDate) {
+            where.transactionDate.gte = new Date(startDate);
+          }
+          if (endDate) {
+            where.transactionDate.lte = new Date(endDate);
+          }
+        }
+
+        const [total, data] = await Promise.all([
+          prisma.payOutWallet.count({ where }),
+          prisma.payOutWallet.findMany({
+            where,
+            skip: offset,
+            take: limit,
+            orderBy: { transactionDate: "desc" },
+            include: {
+              merchant: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                },
+              },
+            },
+          }),
+        ]);
+
+        return {
+          success: true,
+          data,
+          total,
+          offset,
+          limit,
+        };
+      } catch (error) {
+        console.error("Error in getWalletTransactions:", error);
+        throw error;
+      }
+    });
+  }
+
+  // userId FILTER
+  async getWalletSummary(filters = {}) {
+    const cacheKey = buildKey(PAYOUT_WALLET_SUMMARY, filters);
+    return cacheAside(cacheKey, 30, async () => {
+      const { merchantId, userId } = filters;
+      try {
+        const where = {};
+        if (merchantId) {
+          where.merchantId = merchantId;
+        }
+        if (userId) {
+          where.userId = userId;
+        }
+
+        const data = await prisma.payOutWalletSummary.findMany({
           where,
-          skip: offset,
-          take: limit,
-          orderBy: { transactionDate: "desc" },
           include: {
             merchant: {
               select: {
@@ -77,99 +137,54 @@ class PayoutWalletService {
                 email: true,
               },
             },
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-              },
-            },
           },
-        }),
-      ]);
+          orderBy: { createdAt: "desc" },
+        });
 
-      return {
-        success: true,
-        data,
-        total,
-        offset,
-        limit,
-      };
-    } catch (error) {
-      console.error("Error in getWalletTransactions:", error);
-      throw error;
-    }
-  }
+        const summary = data[0] || {
+          merchantId: merchantId || null,
+          userId: userId || null,
+          closingBalance: 0,
+          totalOutToday: 0,
+          totalOutThisWeek: 0,
+          totalOutThisMonth: 0,
+          totalOutThisYear: 0,
+          successfulPayOuts: 0,
+          failedPayOuts: 0,
+          pendingPayOuts: 0,
+          totalPayOuts: 0,
+          netChargesToday: 0,
+          netChargesThisWeek: 0,
+          netChargesThisMonth: 0,
+          netChargesThisYear: 0,
+          lastTransactionProcessed: "",
+          lastRefreshedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
 
-  // userId FILTER
-  async getWalletSummary(filters = {}) {
-    const { merchantId, userId } = filters;
-    try {
-      const where = {};
-      if (merchantId) {
-        where.merchantId = merchantId;
-      }
-      if (userId) {
-        where.userId = userId;
-      }
-
-      const data = await prisma.payOutWalletSummary.findMany({
-        where,
-        include: {
-          merchant: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
+        return {
+          success: true,
+          data: {
+            ...summary,
+            totalChargesToday:
+              summary.totalChargesToday ?? summary.netChargesToday ?? 0,
+            successRate:
+              summary.totalPayOuts > 0
+                ? Number(
+                    (
+                      (summary.successfulPayOuts / summary.totalPayOuts) *
+                      100
+                    ).toFixed(1),
+                  )
+                : 0,
           },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      const summary = data[0] || {
-        merchantId: merchantId || null,
-        userId: userId || null,
-        closingBalance: 0,
-        totalOutToday: 0,
-        totalOutThisWeek: 0,
-        totalOutThisMonth: 0,
-        totalOutThisYear: 0,
-        successfulPayOuts: 0,
-        failedPayOuts: 0,
-        pendingPayOuts: 0,
-        totalPayOuts: 0,
-        netChargesToday: 0,
-        netChargesThisWeek: 0,
-        netChargesThisMonth: 0,
-        netChargesThisYear: 0,
-        lastTransactionProcessed: "",
-        lastRefreshedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      return {
-        success: true,
-        data: {
-          ...summary,
-          totalChargesToday:
-            summary.totalChargesToday ?? summary.netChargesToday ?? 0,
-          successRate:
-            summary.totalPayOuts > 0
-              ? Number(
-                  (
-                    (summary.successfulPayOuts / summary.totalPayOuts) *
-                    100
-                  ).toFixed(1),
-                )
-              : 0,
-        },
-      };
-    } catch (error) {
-      console.error("Error in getWalletSummary:", error);
-      throw error;
-    }
+        };
+      } catch (error) {
+        console.error("Error in getWalletSummary:", error);
+        throw error;
+      }
+    });
   }
 
   async exportTransactionsToCSV(filters = {}) {
@@ -295,26 +310,33 @@ class PayoutWalletService {
 
   // HELPER METHOD FOR BALANCE CALCULATION
   async getCurrentBalance(merchantId, userId = null) {
-    try {
-      const where = { merchantId };
-      if (userId) {
-        where.userId = userId;
+    const cacheKey = buildKey(PAYOUT_WALLET_SUMMARY, {
+      balance: true,
+      merchantId,
+      userId,
+    });
+    return cacheAside(cacheKey, 15, async () => {
+      try {
+        const where = { merchantId };
+        if (userId) {
+          where.userId = userId;
+        }
+
+        const lastWallet = await prisma.payOutWallet.findFirst({
+          where,
+          orderBy: { id: "desc" },
+        });
+
+        return {
+          success: true,
+          balance: lastWallet?.closingBalance || 0,
+          lastTransaction: lastWallet || null,
+        };
+      } catch (error) {
+        console.error("Error in getCurrentBalance:", error);
+        throw error;
       }
-
-      const lastWallet = await prisma.payOutWallet.findFirst({
-        where,
-        orderBy: { id: "desc" },
-      });
-
-      return {
-        success: true,
-        balance: lastWallet?.closingBalance || 0,
-        lastTransaction: lastWallet || null,
-      };
-    } catch (error) {
-      console.error("Error in getCurrentBalance:", error);
-      throw error;
-    }
+    });
   }
 
   // Add this method to the PayoutWalletService class

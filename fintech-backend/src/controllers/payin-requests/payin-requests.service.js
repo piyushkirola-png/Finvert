@@ -1,3 +1,5 @@
+const { cacheAside, buildKey, invalidate } = require("../../redis/redis.service");
+const { PAYIN_REQUESTS_LIST } = require("../../redis/redis.keys");
 const {
   PayInRequestStatus,
   TransactionType,
@@ -270,7 +272,7 @@ class PayInRequestsService {
       };
     }
 
-    // Create pending pay-in request (lock so the same idempotency key cannot insert twice)
+    // Create pending pay-in request
     const createPendingRequest = async () => {
       if (idempotencyKey) {
         const existingRequest = await this.checkIdempotency(
@@ -776,6 +778,10 @@ class PayInRequestsService {
       });
     }
 
+    await invalidate(PAYIN_REQUESTS_LIST);
+    await invalidate("cache:payin:wallet");
+    await invalidate("cache:payin:wallet:summary");
+    await invalidate("cache:payin:dashboard:stats");
     return updated;
   }
 
@@ -909,6 +915,10 @@ class PayInRequestsService {
           });
         });
 
+        await invalidate(PAYIN_REQUESTS_LIST);
+        await invalidate("cache:payin:wallet");
+        await invalidate("cache:payin:wallet:summary");
+        await invalidate("cache:payin:dashboard:stats");
         return result;
       } catch (error) {
         lastError = error;
@@ -1233,6 +1243,14 @@ class PayInRequestsService {
    * Get all pay-in requests
    */
   async findAll(pagination, user, startDate, endDate, filterOptions = {}) {
+    const cacheKey = buildKey(PAYIN_REQUESTS_LIST, {
+      role: user?.role, merchantId: user?.merchantId, userId: user?.id,
+      offset: pagination?.offset, limit: pagination?.limit,
+      startDate: startDate?.toISOString?.() || null,
+      endDate: endDate?.toISOString?.() || null,
+      ...filterOptions,
+    });
+    return cacheAside(cacheKey, 15, async () => {
     const where = {};
 
     if (
@@ -1372,6 +1390,7 @@ class PayInRequestsService {
     ]);
 
     return { payInRequests, total };
+  });
   }
 
   /**
@@ -1555,6 +1574,10 @@ class PayInRequestsService {
       return chargeback;
     });
 
+    await invalidate(PAYIN_REQUESTS_LIST);
+    await invalidate("cache:payin:wallet");
+    await invalidate("cache:payin:wallet:summary");
+    await invalidate("cache:payin:dashboard:stats");
     return result;
   }
 
@@ -1631,6 +1654,9 @@ class PayInRequestsService {
       return walletTransaction;
     });
 
+    await invalidate("cache:payin:wallet");
+    await invalidate("cache:payin:wallet:summary");
+    await invalidate("cache:payin:dashboard:stats");
     return result;
   }
 
@@ -1724,6 +1750,9 @@ class PayInRequestsService {
       return walletTransaction;
     });
 
+    await invalidate("cache:payin:wallet");
+    await invalidate("cache:payin:wallet:summary");
+    await invalidate("cache:payin:dashboard:stats");
     return result;
   }
 

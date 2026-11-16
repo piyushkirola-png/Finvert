@@ -1,3 +1,5 @@
+const { cacheAside, buildKey, invalidate } = require("../../redis/redis.service");
+const { PAYOUT_REQUESTS_LIST } = require("../../redis/redis.keys");
 const {
   Prisma,
   PayOutRequestStatus,
@@ -78,8 +80,6 @@ const SAFE_TO_RETRY_CODES = new Set([
   "ENOTFOUND",
 ]);
 
-// The gateway MAY have accepted the payout (timeout / dropped connection / 5xx):
-// never retry, never fail over, never refund. Keep PENDING and confirm status.
 const AMBIGUOUS_CODES = new Set([
   "CONNECTION_TIMEOUT",
   "GATEWAY_TIMEOUT",
@@ -322,9 +322,13 @@ class PayoutRequestsService {
       { merchantReference: pendingPayoutRequest.merchantReference },
     );
 
-    return this._dispatchAndSettle(pendingPayoutRequest, beneficiary, {
+    const result = await this._dispatchAndSettle(pendingPayoutRequest, beneficiary, {
       paymentMode: createPayoutRequestDto.paymentMode || "BANK",
     });
+    await invalidate(PAYOUT_REQUESTS_LIST);
+    await invalidate("cache:payout:wallet");
+    await invalidate("cache:payout:wallet:summary");
+    return result;
   }
 
   // 1b. SEND TO GATEWAY + SETTLE (shared by create() and retry())
@@ -843,6 +847,9 @@ class PayoutRequestsService {
         "COMPLETED",
         { amountToDebit: updated.amountToDebit },
       );
+      await invalidate(PAYOUT_REQUESTS_LIST);
+      await invalidate("cache:payout:wallet");
+      await invalidate("cache:payout:wallet:summary");
     }
 
     return updated;
@@ -912,6 +919,9 @@ class PayoutRequestsService {
         failureReason: updated.failureReason,
         failureCode: updated.failureCode,
       });
+      await invalidate(PAYOUT_REQUESTS_LIST);
+      await invalidate("cache:payout:wallet");
+      await invalidate("cache:payout:wallet:summary");
     }
 
     return updated;
@@ -1139,6 +1149,14 @@ class PayoutRequestsService {
 
   // 10. FIND ALL PAYOUT REQUESTS
   async findAll(pagination, user, startDate, endDate, filterOptions = {}) {
+    const cacheKey = buildKey(PAYOUT_REQUESTS_LIST, {
+      role: user?.role, merchantId: user?.merchantId, userId: user?.id,
+      offset: pagination?.offset, limit: pagination?.limit,
+      startDate: startDate?.toISOString?.() || null,
+      endDate: endDate?.toISOString?.() || null,
+      ...filterOptions,
+    });
+    return cacheAside(cacheKey, 15, async () => {
     const where = {};
 
     if (
@@ -1253,6 +1271,7 @@ class PayoutRequestsService {
     }));
 
     return { payoutRequests: decryptedPayouts, total };
+  });
   }
 
   // 11. FIND ONE PAYOUT REQUEST
@@ -1426,9 +1445,13 @@ class PayoutRequestsService {
       ifsc: safeDecrypt(reopened.beneficiaryIfsc, true) || "",
     };
 
-    return this._dispatchAndSettle(reopened, beneficiary, {
+    const result = await this._dispatchAndSettle(reopened, beneficiary, {
       paymentMode: "BANK",
     });
+    await invalidate(PAYOUT_REQUESTS_LIST);
+    await invalidate("cache:payout:wallet");
+    await invalidate("cache:payout:wallet:summary");
+    return result;
   }
 
   // 15. PROCESS REFUND WALLET TRANSACTIONS
@@ -1529,6 +1552,13 @@ class PayoutRequestsService {
       );
       return { payoutWalletTx, payinWalletTx };
     });
+    await invalidate("cache:payout:wallet");
+    await invalidate("cache:payout:wallet:summary");
+    await invalidate("cache:payin:wallet");
+    await invalidate("cache:payin:wallet:summary");
+    await invalidate(PAYOUT_REQUESTS_LIST);
+    await invalidate("cache:payin:requests");
+    return result;
   }
 
   // 16. SEND REFUND COMPLETED NOTIFICATION

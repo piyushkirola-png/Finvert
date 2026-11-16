@@ -1,76 +1,139 @@
 const prisma = require("../../../config/prisma");
+const {
+  cacheAside,
+  buildKey,
+  invalidate,
+} = require("../../redis/redis.service");
+const {
+  PAYIN_WALLET_LIST,
+  PAYIN_WALLET_SUMMARY,
+} = require("../../redis/redis.keys");
 
 class PayinWalletService {
   /**
    * Get wallet transactions with filtering and pagination
    */
   async getWalletTransactions(filters = {}) {
-    try {
-      const {
-        offset = 0,
-        limit = 10,
-        type,
-        merchantId,
-        userId,
-        transactionId,
-        referenceId,
-        search,
-        amountMin,
-        amountMax,
-        startDate,
-        endDate,
-      } = filters;
+    const cacheKey = buildKey(PAYIN_WALLET_LIST, filters);
+    return cacheAside(cacheKey, 15, async () => {
+      try {
+        const {
+          offset = 0,
+          limit = 10,
+          type,
+          merchantId,
+          userId,
+          transactionId,
+          referenceId,
+          search,
+          amountMin,
+          amountMax,
+          startDate,
+          endDate,
+        } = filters;
 
-      const where = {};
+        const where = {};
 
-      // Apply filters
-      if (type && type !== "All") {
-        where.type = type;
-      }
-
-      if (merchantId) {
-        where.merchantId = parseInt(merchantId);
-      }
-
-      if (userId) {
-        where.userId = parseInt(userId);
-      }
-
-      if (transactionId) {
-        where.transactionId = { contains: transactionId };
-      }
-
-      if (referenceId) {
-        where.referenceId = { contains: referenceId, mode: "insensitive" };
-      }
-
-      if (search) {
-        where.description = { contains: search, mode: "insensitive" };
-      }
-
-      if (amountMin || amountMax) {
-        where.amount = {};
-        if (amountMin) where.amount.gte = parseFloat(amountMin);
-        if (amountMax) where.amount.lte = parseFloat(amountMax);
-      }
-
-      if (startDate || endDate) {
-        where.transactionDate = {};
-        if (startDate) {
-          where.transactionDate.gte = new Date(startDate);
+        // Apply filters
+        if (type && type !== "All") {
+          where.type = type;
         }
-        if (endDate) {
-          where.transactionDate.lte = new Date(endDate);
+
+        if (merchantId) {
+          where.merchantId = parseInt(merchantId);
         }
+
+        if (userId) {
+          where.userId = parseInt(userId);
+        }
+
+        if (transactionId) {
+          where.transactionId = { contains: transactionId };
+        }
+
+        if (referenceId) {
+          where.referenceId = { contains: referenceId, mode: "insensitive" };
+        }
+
+        if (search) {
+          where.description = { contains: search, mode: "insensitive" };
+        }
+
+        if (amountMin || amountMax) {
+          where.amount = {};
+          if (amountMin) where.amount.gte = parseFloat(amountMin);
+          if (amountMax) where.amount.lte = parseFloat(amountMax);
+        }
+
+        if (startDate || endDate) {
+          where.transactionDate = {};
+          if (startDate) {
+            where.transactionDate.gte = new Date(startDate);
+          }
+          if (endDate) {
+            where.transactionDate.lte = new Date(endDate);
+          }
+        }
+        // Run the count and the list at the same time
+        const [total, data] = await Promise.all([
+          prisma.payInWallet.count({ where }),
+          prisma.payInWallet.findMany({
+            where,
+            skip: parseInt(offset),
+            take: parseInt(limit),
+            orderBy: { transactionDate: "desc" },
+            include: {
+              merchant: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                },
+              },
+            },
+          }),
+        ]);
+
+        return {
+          success: true,
+          data,
+          total,
+          offset: parseInt(offset),
+          limit: parseInt(limit),
+        };
+      } catch (error) {
+        console.error("Error in getWalletTransactions:", error);
+        throw error;
       }
-      // Run the count and the list at the same time
-      const [total, data] = await Promise.all([
-        prisma.payInWallet.count({ where }),
-        prisma.payInWallet.findMany({
+    });
+  }
+
+  /**
+   * Get wallet summary
+   */
+  async getWalletSummary(filters = {}) {
+    const cacheKey = buildKey(PAYIN_WALLET_SUMMARY, filters);
+    return cacheAside(cacheKey, 30, async () => {
+      try {
+        const { merchantId, userId } = filters;
+
+        const where = {};
+        if (merchantId) {
+          where.merchantId = parseInt(merchantId);
+        }
+        if (userId) {
+          where.userId = parseInt(userId);
+        }
+
+        const data = await prisma.payInWalletSummary.findMany({
           where,
-          skip: parseInt(offset),
-          take: parseInt(limit),
-          orderBy: { transactionDate: "desc" },
           include: {
             merchant: {
               select: {
@@ -79,89 +142,41 @@ class PayinWalletService {
                 email: true,
               },
             },
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-              },
-            },
           },
-        }),
-      ]);
+          orderBy: { createdAt: "desc" },
+        });
 
-      return {
-        success: true,
-        data,
-        total,
-        offset: parseInt(offset),
-        limit: parseInt(limit),
-      };
-    } catch (error) {
-      console.error("Error in getWalletTransactions:", error);
-      throw error;
-    }
-  }
+        // Return first record or empty object
+        const summary = data[0] || {
+          merchantId: merchantId ? parseInt(merchantId) : null,
+          closingBalance: 0,
+          totalInToday: 0,
+          totalInThisWeek: 0,
+          totalInThisMonth: 0,
+          totalInThisYear: 0,
+          successfulPayIns: 0,
+          failedPayIns: 0,
+          pendingPayIns: 0,
+          totalPayIns: 0,
+          netChargesToday: 0,
+          netChargesThisWeek: 0,
+          netChargesThisMonth: 0,
+          netChargesThisYear: 0,
+          lastTransactionProcessed: "",
+          lastRefreshedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
 
-  /**
-   * Get wallet summary
-   */
-  async getWalletSummary(filters = {}) {
-    try {
-      const { merchantId, userId } = filters;
-
-      const where = {};
-      if (merchantId) {
-        where.merchantId = parseInt(merchantId);
+        return {
+          success: true,
+          data: summary,
+        };
+      } catch (error) {
+        console.error("Error in getWalletSummary:", error);
+        throw error;
       }
-      if (userId) {
-        where.userId = parseInt(userId);
-      }
-
-      const data = await prisma.payInWalletSummary.findMany({
-        where,
-        include: {
-          merchant: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      // Return first record or empty object
-      const summary = data[0] || {
-        merchantId: merchantId ? parseInt(merchantId) : null,
-        closingBalance: 0,
-        totalInToday: 0,
-        totalInThisWeek: 0,
-        totalInThisMonth: 0,
-        totalInThisYear: 0,
-        successfulPayIns: 0,
-        failedPayIns: 0,
-        pendingPayIns: 0,
-        totalPayIns: 0,
-        netChargesToday: 0,
-        netChargesThisWeek: 0,
-        netChargesThisMonth: 0,
-        netChargesThisYear: 0,
-        lastTransactionProcessed: "",
-        lastRefreshedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      return {
-        success: true,
-        data: summary,
-      };
-    } catch (error) {
-      console.error("Error in getWalletSummary:", error);
-      throw error;
-    }
+    });
   }
 
   /**
@@ -461,6 +476,8 @@ class PayinWalletService {
         return walletTransaction;
       });
 
+      await invalidate(PAYIN_WALLET_LIST);
+      await invalidate(PAYIN_WALLET_SUMMARY);
       return result;
     } catch (error) {
       console.error("Error in processChargebackDebit:", error);
@@ -637,6 +654,8 @@ class PayinWalletService {
         return walletTransaction;
       });
 
+      await invalidate(PAYIN_WALLET_LIST);
+      await invalidate(PAYIN_WALLET_SUMMARY);
       return result;
     } catch (error) {
       console.error("Error in processChargebackReversal:", error);

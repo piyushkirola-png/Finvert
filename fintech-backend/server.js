@@ -258,20 +258,20 @@ cron.schedule(
 );
 
 // Cron job 4: Process queue every minute
-// cron.schedule(
-//   "* * * * *",
-//   async () => {
-//     try {
-//       const result = await queueService.processPendingJobs();
-//       if (result.processed > 0) {
-//         console.log(`✅ Queue processed ${result.processed} jobs`);
-//       }
-//     } catch (error) {
-//       console.error(`❌ Queue processing failed:`, error.message);
-//     }
-//   },
-//   { timezone: "UTC" },
-// );
+cron.schedule(
+  "* * * * *",
+  async () => {
+    try {
+      const result = await queueService.processPendingJobs();
+      if (result.processed > 0) {
+        console.log(`✅ Queue processed ${result.processed} jobs`);
+      }
+    } catch (error) {
+      console.error(`❌ Queue processing failed:`, error.message);
+    }
+  },
+  { timezone: "UTC" },
+);
 
 async function startServer() {
   try {
