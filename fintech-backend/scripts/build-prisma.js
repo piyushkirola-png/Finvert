@@ -45,7 +45,6 @@ try {
     "password-resets.prisma",
     "permissions.prisma",
     "user-permissions.prisma",
-    "audit-logs.prisma",
 
     // 5. PayIn
     "payin-requests.prisma",
@@ -87,6 +86,9 @@ try {
     // 19. Bulk Uploads
     "bulk-uploads.prisma",
     "scheduled-tasks.prisma",
+
+    // 20. Support
+    "support.prisma"
   ];
 
   const schemas = [];
