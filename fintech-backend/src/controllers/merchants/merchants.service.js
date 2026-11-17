@@ -343,26 +343,37 @@ const updateMerchant = async (id, data) => {
   }
 
   // new business fields
-  if (data.contactPerson !== undefined) updateData.contactPerson = data.contactPerson;
-  if (data.businessPhone !== undefined) updateData.businessPhone = data.businessPhone;
-  if (data.businessEmail !== undefined) updateData.businessEmail = data.businessEmail;
-  if (data.businessAddress !== undefined) updateData.businessAddress = data.businessAddress;
+  if (data.contactPerson !== undefined)
+    updateData.contactPerson = data.contactPerson;
+  if (data.businessPhone !== undefined)
+    updateData.businessPhone = data.businessPhone;
+  if (data.businessEmail !== undefined)
+    updateData.businessEmail = data.businessEmail;
+  if (data.businessAddress !== undefined)
+    updateData.businessAddress = data.businessAddress;
   if (data.city !== undefined) updateData.city = data.city;
   if (data.state !== undefined) updateData.state = data.state;
   if (data.pinCode !== undefined) updateData.pinCode = data.pinCode;
   if (data.zone !== undefined) updateData.zone = data.zone;
   if (data.panNumber !== undefined)
     updateData.panNumber = data.panNumber ? encrypt(data.panNumber) : null;
-  if (data.nameAsPerPan !== undefined) updateData.nameAsPerPan = data.nameAsPerPan;
-  if (data.incorporationDate !== undefined) updateData.incorporationDate = data.incorporationDate;
+  if (data.nameAsPerPan !== undefined)
+    updateData.nameAsPerPan = data.nameAsPerPan;
+  if (data.incorporationDate !== undefined)
+    updateData.incorporationDate = data.incorporationDate;
   if (data.gstStatus !== undefined) updateData.gstStatus = data.gstStatus;
-  if (data.merchantCategory !== undefined) updateData.merchantCategory = data.merchantCategory;
-  if (data.annualTurnover !== undefined) updateData.annualTurnover = data.annualTurnover;
-  if (data.operatingCountry !== undefined) updateData.operatingCountry = data.operatingCountry;
-  if (data.numberOfEmployees !== undefined) updateData.numberOfEmployees = data.numberOfEmployees;
+  if (data.merchantCategory !== undefined)
+    updateData.merchantCategory = data.merchantCategory;
+  if (data.annualTurnover !== undefined)
+    updateData.annualTurnover = data.annualTurnover;
+  if (data.operatingCountry !== undefined)
+    updateData.operatingCountry = data.operatingCountry;
+  if (data.numberOfEmployees !== undefined)
+    updateData.numberOfEmployees = data.numberOfEmployees;
 
   // new bank fields
-  if (data.bankAccountType !== undefined) updateData.bankAccountType = data.bankAccountType;
+  if (data.bankAccountType !== undefined)
+    updateData.bankAccountType = data.bankAccountType;
   if (data.bankAccountName !== undefined)
     updateData.bankAccountName = data.bankAccountName
       ? encrypt(data.bankAccountName)

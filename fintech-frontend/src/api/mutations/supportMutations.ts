@@ -5,10 +5,7 @@ import {
   postMessage,
   updateTicketStatus,
 } from "../services/supportService";
-import type {
-  CreateTicketPayload,
-  SupportStatus,
-} from "../../types/support";
+import type { CreateTicketPayload, SupportStatus } from "../../types/support";
 
 export const useCreateTicket = () => {
   const qc = useQueryClient();

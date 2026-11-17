@@ -36,9 +36,12 @@ export default function SupportMessage({
             isOwn ? "text-slate-300" : "text-slate-500"
           }`}
         >
-          {message.sender?.fullName ?? "Unknown"} · {formatTime(message.createdAt)}
+          {message.sender?.fullName ?? "Unknown"} ·{" "}
+          {formatTime(message.createdAt)}
         </div>
-        <p className="text-sm whitespace-pre-wrap break-words">{message.body}</p>
+        <p className="text-sm whitespace-pre-wrap break-words">
+          {message.body}
+        </p>
         {message.attachments && message.attachments.length > 0 && (
           <ul className="mt-2 space-y-1">
             {message.attachments.map((a) => (

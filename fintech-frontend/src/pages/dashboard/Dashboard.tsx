@@ -125,8 +125,8 @@ export default function Dashboard() {
         users={
           filters.merchantId
             ? users.filter(
-              (u) => u.merchantId?.toString() === filters.merchantId,
-            )
+                (u) => u.merchantId?.toString() === filters.merchantId,
+              )
             : users
         }
         filters={filters}

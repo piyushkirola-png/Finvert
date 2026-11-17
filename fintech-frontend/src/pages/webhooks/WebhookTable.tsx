@@ -48,7 +48,7 @@ interface Props {
   onRetry?: (id: number) => void;
   isRetrying?: boolean;
   emptyText: string;
-  
+
   onFetchPayload?: (
     id: number,
     kind: "requestBody" | "responseBody",

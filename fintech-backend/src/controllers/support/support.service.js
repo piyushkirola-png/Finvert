@@ -88,7 +88,10 @@ async function createTicket(user, { topic, subject, message, files = [] }) {
   return getTicket(user, ticket.id);
 }
 
-async function listTickets(user, { status, topic, search, page = 1, limit = 20 } = {}) {
+async function listTickets(
+  user,
+  { status, topic, search, page = 1, limit = 20 } = {},
+) {
   const where = {};
   if (!isAdmin(user)) where.userId = user.id;
   if (status && STATUSES.includes(status)) where.status = status;
@@ -133,7 +136,8 @@ async function getTicket(user, id) {
       },
     },
   });
-  if (!ticket) throw Object.assign(new Error("Ticket not found"), { status: 404 });
+  if (!ticket)
+    throw Object.assign(new Error("Ticket not found"), { status: 404 });
   if (!isAdmin(user) && ticket.userId !== user.id) {
     throw Object.assign(new Error("Forbidden"), { status: 403 });
   }
@@ -147,12 +151,15 @@ async function postMessage(user, ticketId, body, files = []) {
   const ticket = await prisma.supportTicket.findUnique({
     where: { id: parseInt(ticketId) },
   });
-  if (!ticket) throw Object.assign(new Error("Ticket not found"), { status: 404 });
+  if (!ticket)
+    throw Object.assign(new Error("Ticket not found"), { status: 404 });
   if (!isAdmin(user) && ticket.userId !== user.id) {
     throw Object.assign(new Error("Forbidden"), { status: 403 });
   }
   if (ticket.status === "CLOSED") {
-    throw Object.assign(new Error("Ticket is closed. Ask admin to reopen."), { status: 400 });
+    throw Object.assign(new Error("Ticket is closed. Ask admin to reopen."), {
+      status: 400,
+    });
   }
 
   const message = await prisma.$transaction(async (tx) => {
@@ -201,7 +208,8 @@ async function updateStatus(user, ticketId, status) {
   const ticket = await prisma.supportTicket.findUnique({
     where: { id: parseInt(ticketId) },
   });
-  if (!ticket) throw Object.assign(new Error("Ticket not found"), { status: 404 });
+  if (!ticket)
+    throw Object.assign(new Error("Ticket not found"), { status: 404 });
   if (ticket.status === status) return ticket;
 
   const data = { status };

@@ -16,8 +16,7 @@ class FiatPayWebhook {
       const isPayout =
         payload.order_id !== undefined ||
         payload.utr_no !== undefined ||
-        (payload.payer_info === undefined &&
-          payload.orderid === undefined);
+        (payload.payer_info === undefined && payload.orderid === undefined);
 
       if (isPayout) {
         return this._processPayoutCallback(payload, headers);
@@ -57,12 +56,10 @@ class FiatPayWebhook {
         payload.merchantReference ||
         null;
 
-      const apiTxnId =
-        payload.api_txnid || payload.gatewayReference || null;
+      const apiTxnId = payload.api_txnid || payload.gatewayReference || null;
 
       const utr = payload.utr || null;
-      const amount =
-        payload.amount != null ? Number(payload.amount) : null;
+      const amount = payload.amount != null ? Number(payload.amount) : null;
       const rawStatus = String(payload.status || "").toUpperCase();
 
       let ourStatus = PayInRequestStatus.PENDING;
@@ -158,15 +155,11 @@ class FiatPayWebhook {
   _processPayoutCallback(payload, headers) {
     try {
       const orderId =
-        payload.order_id ||
-        payload.orderid ||
-        payload.reference_id ||
-        null;
+        payload.order_id || payload.orderid || payload.reference_id || null;
 
       const apiTxnId = payload.api_txnid || null;
       const utr = payload.utr || payload.utr_no || null;
-      const amount =
-        payload.amount != null ? Number(payload.amount) : null;
+      const amount = payload.amount != null ? Number(payload.amount) : null;
       const rawStatus = String(payload.status || "").toUpperCase();
 
       let ourStatus = PayOutRequestStatus.PENDING;

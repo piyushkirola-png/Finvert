@@ -149,12 +149,13 @@ export default function BulkUploadSummary({
                     Success Rate
                   </p>
                   <p
-                    className={`text-lg font-semibold mt-1 ${successRate >= 80
-                      ? "text-green-600"
-                      : successRate >= 50
-                        ? "text-amber-600"
-                        : "text-red-600"
-                      }`}
+                    className={`text-lg font-semibold mt-1 ${
+                      successRate >= 80
+                        ? "text-green-600"
+                        : successRate >= 50
+                          ? "text-amber-600"
+                          : "text-red-600"
+                    }`}
                   >
                     {successRate}%
                   </p>
@@ -165,8 +166,9 @@ export default function BulkUploadSummary({
               <div className="flex items-center flex-wrap gap-3">
                 <span className="text-xs text-slate-500">Status:</span>
                 <span
-                  className={`${BADGE} ${BADGE_COLORS[statusTone[detail.status] || "slate"]
-                    }`}
+                  className={`${BADGE} ${
+                    BADGE_COLORS[statusTone[detail.status] || "slate"]
+                  }`}
                 >
                   {detail.status.replace("_", " ")}
                 </span>
@@ -177,10 +179,11 @@ export default function BulkUploadSummary({
                 )}
                 <span className="text-xs text-slate-500 ml-2">Mode:</span>
                 <span
-                  className={`${BADGE} ${mode === "Scheduled"
-                    ? BADGE_COLORS.green
-                    : BADGE_COLORS.yellow
-                    }`}
+                  className={`${BADGE} ${
+                    mode === "Scheduled"
+                      ? BADGE_COLORS.green
+                      : BADGE_COLORS.yellow
+                  }`}
                 >
                   {mode}
                 </span>
@@ -260,10 +263,11 @@ export default function BulkUploadSummary({
                               </td>
                               <td className="px-3 py-2">
                                 <span
-                                  className={`${BADGE} ${row.status === "SUCCESS"
-                                    ? BADGE_COLORS.green
-                                    : BADGE_COLORS.red
-                                    }`}
+                                  className={`${BADGE} ${
+                                    row.status === "SUCCESS"
+                                      ? BADGE_COLORS.green
+                                      : BADGE_COLORS.red
+                                  }`}
                                 >
                                   {row.status === "SUCCESS" ? (
                                     <CheckCircle2 size={12} />

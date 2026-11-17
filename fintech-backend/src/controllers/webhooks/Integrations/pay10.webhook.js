@@ -12,10 +12,7 @@ class Pay10Webhook {
   }
 
   async process(payload, headers) {
-    console.log(
-      "[Pay10 Webhook] Received:",
-      JSON.stringify(payload, null, 2),
-    );
+    console.log("[Pay10 Webhook] Received:", JSON.stringify(payload, null, 2));
 
     try {
       const decoded = this._extractDecodedPayload(payload);
@@ -106,7 +103,8 @@ class Pay10Webhook {
     const isFailure =
       ["FAILED", "DECLINED", "REJECT", "REJECTED", "CANCELLED"].includes(
         rawStatus,
-      ) || (isFinal === "Y" && !isSuccess);
+      ) ||
+      (isFinal === "Y" && !isSuccess);
 
     if (isSuccess) {
       ourStatus = PayInRequestStatus.COMPLETED;
@@ -150,10 +148,7 @@ class Pay10Webhook {
     amountINR = null,
   }) {
     const orderId =
-      merchantReference ||
-      decoded.ORDER_ID ||
-      decoded.orderid ||
-      null;
+      merchantReference || decoded.ORDER_ID || decoded.orderid || null;
     const txnId = decoded.TXN_ID || null;
     const pgRef = decoded.PG_REF_NUM || null;
     const gatewayRef = gatewayReference || txnId || pgRef || orderId;
@@ -161,8 +156,8 @@ class Pay10Webhook {
       amountINR != null
         ? amountINR
         : decoded.AMOUNT != null
-        ? Number((Number(decoded.AMOUNT) / 100).toFixed(2))
-        : 0;
+          ? Number((Number(decoded.AMOUNT) / 100).toFixed(2))
+          : 0;
 
     return {
       merchantReference: orderId,

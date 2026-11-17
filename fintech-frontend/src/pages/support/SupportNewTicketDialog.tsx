@@ -52,14 +52,14 @@ export default function SupportNewTicketDialog({
                 Create New Support Ticket
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Please provide details about your issue. We'll respond as soon as possible.
+                Please provide details about your issue. We'll respond as soon
+                as possible.
               </p>
             </div>
             <button
               onClick={onClose}
               className="text-slate-500 hover:text-slate-900"
-            >
-            </button>
+            ></button>
           </div>
         </div>
 
@@ -104,17 +104,18 @@ export default function SupportNewTicketDialog({
         </div>
 
         <div className={MODAL_FOOTER}>
-          <button onClick={onClose} className={CANCEL_BTN} disabled={create.isPending}>
+          <button
+            onClick={onClose}
+            className={CANCEL_BTN}
+            disabled={create.isPending}
+          >
             Cancel
           </button>
           <button
             onClick={submit}
             className={BTN_PRIMARY}
             disabled={
-              create.isPending ||
-              !topic ||
-              !subject.trim() ||
-              !message.trim()
+              create.isPending || !topic || !subject.trim() || !message.trim()
             }
           >
             {create.isPending ? "Creating…" : "Create Ticket"}

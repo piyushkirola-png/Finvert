@@ -1,4 +1,8 @@
-const { cacheAside, buildKey, invalidate } = require("../../redis/redis.service");
+const {
+  cacheAside,
+  buildKey,
+  invalidate,
+} = require("../../redis/redis.service");
 const { PAYOUT_REQUESTS_LIST } = require("../../redis/redis.keys");
 const {
   Prisma,
@@ -313,9 +317,13 @@ class PayoutRequestsService {
       throw new Error("Failed to create payout request");
     }
 
-    const result = await this._dispatchAndSettle(pendingPayoutRequest, beneficiary, {
-      paymentMode: createPayoutRequestDto.paymentMode || "BANK",
-    });
+    const result = await this._dispatchAndSettle(
+      pendingPayoutRequest,
+      beneficiary,
+      {
+        paymentMode: createPayoutRequestDto.paymentMode || "BANK",
+      },
+    );
     await invalidate(PAYOUT_REQUESTS_LIST);
     await invalidate("cache:payout:wallet");
     await invalidate("cache:payout:wallet:summary");
@@ -1115,128 +1123,133 @@ class PayoutRequestsService {
   // 10. FIND ALL PAYOUT REQUESTS
   async findAll(pagination, user, startDate, endDate, filterOptions = {}) {
     const cacheKey = buildKey(PAYOUT_REQUESTS_LIST, {
-      role: user?.role, merchantId: user?.merchantId, userId: user?.id,
-      offset: pagination?.offset, limit: pagination?.limit,
+      role: user?.role,
+      merchantId: user?.merchantId,
+      userId: user?.id,
+      offset: pagination?.offset,
+      limit: pagination?.limit,
       startDate: startDate?.toISOString?.() || null,
       endDate: endDate?.toISOString?.() || null,
       ...filterOptions,
     });
     return cacheAside(cacheKey, 15, async () => {
-    const where = {};
+      const where = {};
 
-    if (
-      user &&
-      user.role !== "ADMIN" &&
-      user.role !== "SUPER_ADMIN" &&
-      user.merchantId
-    ) {
-      where.merchantId = user.merchantId;
-      where.userId = user.id;
-    }
+      if (
+        user &&
+        user.role !== "ADMIN" &&
+        user.role !== "SUPER_ADMIN" &&
+        user.merchantId
+      ) {
+        where.merchantId = user.merchantId;
+        where.userId = user.id;
+      }
 
-    if (startDate || endDate) {
-      where.requestedAt = {};
-      if (startDate) where.requestedAt.gte = startDate;
-      if (endDate) where.requestedAt.lte = endDate;
-    }
+      if (startDate || endDate) {
+        where.requestedAt = {};
+        if (startDate) where.requestedAt.gte = startDate;
+        if (endDate) where.requestedAt.lte = endDate;
+      }
 
-    if (filterOptions.gatewayId)
-      where.gatewayId = parseInt(filterOptions.gatewayId);
-    if (filterOptions.merchantId)
-      where.merchantId = parseInt(filterOptions.merchantId);
-    if (filterOptions.userId) where.userId = parseInt(filterOptions.userId);
-    if (filterOptions.status) where.status = filterOptions.status;
-    if (filterOptions.search) {
-      where.OR = [
-        {
-          merchantReference: {
-            contains: filterOptions.search,
-            mode: "insensitive",
-          },
-        },
-        {
-          beneficiaryName: {
-            contains: filterOptions.search,
-            mode: "insensitive",
-          },
-        },
-        {
-          beneficiaryAccount: {
-            contains: filterOptions.search,
-            mode: "insensitive",
-          },
-        },
-        {
-          beneficiaryBank: {
-            contains: filterOptions.search,
-            mode: "insensitive",
-          },
-        },
-      ];
-    }
-    if (filterOptions.amountMin || filterOptions.amountMax) {
-      where.amount = {};
-      if (filterOptions.amountMin)
-        where.amount.gte = parseFloat(filterOptions.amountMin);
-      if (filterOptions.amountMax)
-        where.amount.lte = parseFloat(filterOptions.amountMax);
-    }
-
-    if (filterOptions.paymentMode) {
-      where.paymentMode = filterOptions.paymentMode;
-    }
-
-    if (filterOptions.feeType) {
-      where.feeType = filterOptions.feeType;
-    }
-
-    // ADD THIS BLOCK FOR UTR FILTER
-    if (filterOptions.utr) {
-      where.AND = [
-        ...(where.AND || []),
-        {
-          OR: [
-            { metadata: { path: ["utr"], string_contains: filterOptions.utr } },
-            {
-              metadata: {
-                path: ["rawPayload", "utr"],
-                string_contains: filterOptions.utr,
-              },
+      if (filterOptions.gatewayId)
+        where.gatewayId = parseInt(filterOptions.gatewayId);
+      if (filterOptions.merchantId)
+        where.merchantId = parseInt(filterOptions.merchantId);
+      if (filterOptions.userId) where.userId = parseInt(filterOptions.userId);
+      if (filterOptions.status) where.status = filterOptions.status;
+      if (filterOptions.search) {
+        where.OR = [
+          {
+            merchantReference: {
+              contains: filterOptions.search,
+              mode: "insensitive",
             },
-          ],
-        },
-      ];
-    }
-
-    const orderBy = filterOptions?.sorts || { requestedAt: "desc" };
-
-    const [total, payoutRequests] = await Promise.all([
-      prisma.payOutRequest.count({ where }),
-      prisma.payOutRequest.findMany({
-        where,
-        orderBy,
-        skip: pagination?.offset || 0,
-        take: pagination?.limit || 10,
-        include: {
-          merchant: {
-            select: { id: true, name: true, email: true },
           },
-          gateway: {
-            select: { id: true, name: true },
+          {
+            beneficiaryName: {
+              contains: filterOptions.search,
+              mode: "insensitive",
+            },
           },
-        },
-      }),
-    ]);
+          {
+            beneficiaryAccount: {
+              contains: filterOptions.search,
+              mode: "insensitive",
+            },
+          },
+          {
+            beneficiaryBank: {
+              contains: filterOptions.search,
+              mode: "insensitive",
+            },
+          },
+        ];
+      }
+      if (filterOptions.amountMin || filterOptions.amountMax) {
+        where.amount = {};
+        if (filterOptions.amountMin)
+          where.amount.gte = parseFloat(filterOptions.amountMin);
+        if (filterOptions.amountMax)
+          where.amount.lte = parseFloat(filterOptions.amountMax);
+      }
 
-    const decryptedPayouts = payoutRequests.map((payout) => ({
-      ...payout,
-      beneficiaryAccount: safeDecrypt(payout.beneficiaryAccount, true),
-      beneficiaryBank: safeDecrypt(payout.beneficiaryBank, true),
-      beneficiaryIfsc: safeDecrypt(payout.beneficiaryIfsc, true),
-    }));
+      if (filterOptions.paymentMode) {
+        where.paymentMode = filterOptions.paymentMode;
+      }
 
-    return { payoutRequests: decryptedPayouts, total };
-  });
+      if (filterOptions.feeType) {
+        where.feeType = filterOptions.feeType;
+      }
+
+      // ADD THIS BLOCK FOR UTR FILTER
+      if (filterOptions.utr) {
+        where.AND = [
+          ...(where.AND || []),
+          {
+            OR: [
+              {
+                metadata: { path: ["utr"], string_contains: filterOptions.utr },
+              },
+              {
+                metadata: {
+                  path: ["rawPayload", "utr"],
+                  string_contains: filterOptions.utr,
+                },
+              },
+            ],
+          },
+        ];
+      }
+
+      const orderBy = filterOptions?.sorts || { requestedAt: "desc" };
+
+      const [total, payoutRequests] = await Promise.all([
+        prisma.payOutRequest.count({ where }),
+        prisma.payOutRequest.findMany({
+          where,
+          orderBy,
+          skip: pagination?.offset || 0,
+          take: pagination?.limit || 10,
+          include: {
+            merchant: {
+              select: { id: true, name: true, email: true },
+            },
+            gateway: {
+              select: { id: true, name: true },
+            },
+          },
+        }),
+      ]);
+
+      const decryptedPayouts = payoutRequests.map((payout) => ({
+        ...payout,
+        beneficiaryAccount: safeDecrypt(payout.beneficiaryAccount, true),
+        beneficiaryBank: safeDecrypt(payout.beneficiaryBank, true),
+        beneficiaryIfsc: safeDecrypt(payout.beneficiaryIfsc, true),
+      }));
+
+      return { payoutRequests: decryptedPayouts, total };
+    });
   }
 
   // 11. FIND ONE PAYOUT REQUEST

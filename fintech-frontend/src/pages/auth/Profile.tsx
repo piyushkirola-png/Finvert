@@ -180,9 +180,7 @@ export default function Profile() {
                     {fullName}
                     <CheckCircle size={16} className="text-blue-100" />
                   </h2>
-                  <p className="text-sm text-blue-100 truncate">
-                    {user.email}
-                  </p>
+                  <p className="text-sm text-blue-100 truncate">{user.email}</p>
                 </div>
               </div>
             </div>

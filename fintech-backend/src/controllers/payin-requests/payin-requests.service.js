@@ -1,4 +1,8 @@
-const { cacheAside, buildKey, invalidate } = require("../../redis/redis.service");
+const {
+  cacheAside,
+  buildKey,
+  invalidate,
+} = require("../../redis/redis.service");
 const { PAYIN_REQUESTS_LIST } = require("../../redis/redis.keys");
 const {
   PayInRequestStatus,
@@ -1234,153 +1238,158 @@ class PayInRequestsService {
    */
   async findAll(pagination, user, startDate, endDate, filterOptions = {}) {
     const cacheKey = buildKey(PAYIN_REQUESTS_LIST, {
-      role: user?.role, merchantId: user?.merchantId, userId: user?.id,
-      offset: pagination?.offset, limit: pagination?.limit,
+      role: user?.role,
+      merchantId: user?.merchantId,
+      userId: user?.id,
+      offset: pagination?.offset,
+      limit: pagination?.limit,
       startDate: startDate?.toISOString?.() || null,
       endDate: endDate?.toISOString?.() || null,
       ...filterOptions,
     });
     return cacheAside(cacheKey, 15, async () => {
-    const where = {};
+      const where = {};
 
-    if (
-      user &&
-      user.role !== "ADMIN" &&
-      user.role !== "SUPER_ADMIN" &&
-      user.merchantId
-    ) {
-      where.merchantId = user.merchantId;
-    }
-
-    if (startDate || endDate) {
-      where.requestedAt = {};
-      if (startDate) where.requestedAt.gte = startDate;
-      if (endDate) where.requestedAt.lte = endDate;
-    }
-
-    if (filterOptions.gatewayId) {
-      where.gatewayId = parseInt(filterOptions.gatewayId);
-    }
-
-    if (filterOptions.merchantId) {
-      where.merchantId = parseInt(filterOptions.merchantId);
-    }
-
-    if (filterOptions.userId) {
-      where.userId = parseInt(filterOptions.userId);
-    }
-
-    if (filterOptions.status) {
-      where.status = filterOptions.status;
-    }
-
-    if (filterOptions.paymentMode) {
-      where.paymentMode = filterOptions.paymentMode;
-    }
-
-    if (filterOptions.search) {
-      where.OR = [
-        {
-          merchantReference: {
-            contains: filterOptions.search,
-            mode: "insensitive",
-          },
-        },
-        {
-          metadata: {
-            path: ["utr"],
-            string_contains: filterOptions.search,
-          },
-        },
-      ];
-    }
-
-    // ADD THIS BLOCK FOR UTR FILTER
-    if (filterOptions.utr) {
-      where.AND = [
-        ...(where.AND || []),
-        {
-          OR: [
-            { metadata: { path: ["utr"], string_contains: filterOptions.utr } },
-            {
-              metadata: {
-                path: ["rawPayload", "utr"],
-                string_contains: filterOptions.utr,
-              },
-            },
-            {
-              metadata: {
-                path: ["responseLog", "utr"],
-                string_contains: filterOptions.utr,
-              },
-            },
-          ],
-        },
-      ];
-    }
-
-    if (filterOptions.amountMin || filterOptions.amountMax) {
-      const min =
-        filterOptions.amountMin !== undefined &&
-        filterOptions.amountMin !== null &&
-        filterOptions.amountMin !== ""
-          ? Number(filterOptions.amountMin)
-          : null;
-      const max =
-        filterOptions.amountMax !== undefined &&
-        filterOptions.amountMax !== null &&
-        filterOptions.amountMax !== ""
-          ? Number(filterOptions.amountMax)
-          : null;
-
-      const inrRange = {};
-      const rawRange = {};
-      if (min !== null) {
-        inrRange.gte = min;
-        rawRange.gte = min;
-      }
-      if (max !== null) {
-        inrRange.lte = max;
-        rawRange.lte = max;
+      if (
+        user &&
+        user.role !== "ADMIN" &&
+        user.role !== "SUPER_ADMIN" &&
+        user.merchantId
+      ) {
+        where.merchantId = user.merchantId;
       }
 
-      where.AND = [
-        ...(where.AND || []),
-        {
-          OR: [
-            { amountInINR: inrRange },
-            { AND: [{ amountInINR: null }, { amount: rawRange }] },
-          ],
-        },
-      ];
-    }
+      if (startDate || endDate) {
+        where.requestedAt = {};
+        if (startDate) where.requestedAt.gte = startDate;
+        if (endDate) where.requestedAt.lte = endDate;
+      }
 
-    if (filterOptions.feeType) {
-      where.feeType = filterOptions.feeType;
-    }
+      if (filterOptions.gatewayId) {
+        where.gatewayId = parseInt(filterOptions.gatewayId);
+      }
 
-    const orderBy = filterOptions?.sorts || { requestedAt: "desc" };
+      if (filterOptions.merchantId) {
+        where.merchantId = parseInt(filterOptions.merchantId);
+      }
 
-    const [total, payInRequests] = await Promise.all([
-      prisma.payInRequest.count({ where }),
-      prisma.payInRequest.findMany({
-        where,
-        orderBy,
-        skip: pagination?.offset || 0,
-        take: pagination?.limit || 10,
-        include: {
-          merchant: {
-            select: { id: true, name: true, email: true },
+      if (filterOptions.userId) {
+        where.userId = parseInt(filterOptions.userId);
+      }
+
+      if (filterOptions.status) {
+        where.status = filterOptions.status;
+      }
+
+      if (filterOptions.paymentMode) {
+        where.paymentMode = filterOptions.paymentMode;
+      }
+
+      if (filterOptions.search) {
+        where.OR = [
+          {
+            merchantReference: {
+              contains: filterOptions.search,
+              mode: "insensitive",
+            },
           },
-          gateway: {
-            select: { id: true, name: true },
+          {
+            metadata: {
+              path: ["utr"],
+              string_contains: filterOptions.search,
+            },
           },
-        },
-      }),
-    ]);
+        ];
+      }
 
-    return { payInRequests, total };
-  });
+      // ADD THIS BLOCK FOR UTR FILTER
+      if (filterOptions.utr) {
+        where.AND = [
+          ...(where.AND || []),
+          {
+            OR: [
+              {
+                metadata: { path: ["utr"], string_contains: filterOptions.utr },
+              },
+              {
+                metadata: {
+                  path: ["rawPayload", "utr"],
+                  string_contains: filterOptions.utr,
+                },
+              },
+              {
+                metadata: {
+                  path: ["responseLog", "utr"],
+                  string_contains: filterOptions.utr,
+                },
+              },
+            ],
+          },
+        ];
+      }
+
+      if (filterOptions.amountMin || filterOptions.amountMax) {
+        const min =
+          filterOptions.amountMin !== undefined &&
+          filterOptions.amountMin !== null &&
+          filterOptions.amountMin !== ""
+            ? Number(filterOptions.amountMin)
+            : null;
+        const max =
+          filterOptions.amountMax !== undefined &&
+          filterOptions.amountMax !== null &&
+          filterOptions.amountMax !== ""
+            ? Number(filterOptions.amountMax)
+            : null;
+
+        const inrRange = {};
+        const rawRange = {};
+        if (min !== null) {
+          inrRange.gte = min;
+          rawRange.gte = min;
+        }
+        if (max !== null) {
+          inrRange.lte = max;
+          rawRange.lte = max;
+        }
+
+        where.AND = [
+          ...(where.AND || []),
+          {
+            OR: [
+              { amountInINR: inrRange },
+              { AND: [{ amountInINR: null }, { amount: rawRange }] },
+            ],
+          },
+        ];
+      }
+
+      if (filterOptions.feeType) {
+        where.feeType = filterOptions.feeType;
+      }
+
+      const orderBy = filterOptions?.sorts || { requestedAt: "desc" };
+
+      const [total, payInRequests] = await Promise.all([
+        prisma.payInRequest.count({ where }),
+        prisma.payInRequest.findMany({
+          where,
+          orderBy,
+          skip: pagination?.offset || 0,
+          take: pagination?.limit || 10,
+          include: {
+            merchant: {
+              select: { id: true, name: true, email: true },
+            },
+            gateway: {
+              select: { id: true, name: true },
+            },
+          },
+        }),
+      ]);
+
+      return { payInRequests, total };
+    });
   }
 
   /**

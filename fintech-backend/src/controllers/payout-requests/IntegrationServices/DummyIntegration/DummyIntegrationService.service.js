@@ -128,7 +128,9 @@ class DummyPayoutIntegrationService {
       );
 
       const data = response.data?.data || response.data || {};
-      const mockStatus = String(data.transfer_status || "PENDING").toUpperCase();
+      const mockStatus = String(
+        data.transfer_status || "PENDING",
+      ).toUpperCase();
 
       console.log(
         `[Dummy Payout] Gateway responded: HTTP ${response.status}, transfer_status=${mockStatus}, transfer_id=${data.transfer_id || "n/a"}`,

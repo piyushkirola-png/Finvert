@@ -164,9 +164,7 @@ const documentation: SidebarSection = {
 const support: SidebarSection = {
   title: "Support",
   icon: MessageSquare,
-  items: [
-    { label: "Support Tickets", path: "/support", icon: MessageSquare },
-  ],
+  items: [{ label: "Support Tickets", path: "/support", icon: MessageSquare }],
 };
 
 export function getSections(
@@ -184,7 +182,7 @@ export function getSections(
       apiReference,
       configuration,
       monitoring,
-      support
+      support,
     ];
   }
   if (role === "USER") {
@@ -196,7 +194,7 @@ export function getSections(
       documentation,
       apiReference,
       reports,
-      support
+      support,
     ];
   }
   return [];

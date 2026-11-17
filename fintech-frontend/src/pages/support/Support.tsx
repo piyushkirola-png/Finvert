@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { Plus, RefreshCw } from "lucide-react";
-import { useSupportTickets, useSupportTicket } from "../../api/queries/useSupport";
+import {
+  useSupportTickets,
+  useSupportTicket,
+} from "../../api/queries/useSupport";
 import type { SupportStatus } from "../../types/support";
 import { PAGE_HEADER, BTN_PRIMARY, BTN_REFRESH } from "../../lib/styles";
 import SupportSidebar from "./SupportSidebar";
@@ -47,10 +50,7 @@ export default function Support({ isAdmin }: { isAdmin: boolean }) {
             <RefreshCw size={16} /> Refresh
           </button>
           {!isAdmin && (
-            <button
-              onClick={() => setShowCreate(true)}
-              className={BTN_PRIMARY}
-            >
+            <button onClick={() => setShowCreate(true)} className={BTN_PRIMARY}>
               <Plus size={16} /> New Ticket
             </button>
           )}

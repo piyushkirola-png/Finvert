@@ -56,9 +56,13 @@ export async function postMessage(
   if (files && files.length) {
     files.forEach((f) => form.append("attachments", f));
   }
-  const { data } = await api.post(`/support/tickets/${ticketId}/messages`, form, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const { data } = await api.post(
+    `/support/tickets/${ticketId}/messages`,
+    form,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    },
+  );
   return data;
 }
 

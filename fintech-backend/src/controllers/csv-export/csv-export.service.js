@@ -1086,15 +1086,6 @@
 
 // module.exports = new CsvExportService();
 
-
-
-
-
-
-
-
-
-
 const fs = require("fs");
 const path = require("path");
 const prisma = require("../../../config/prisma");
@@ -1390,13 +1381,31 @@ class CsvExportService {
 
   // ---------- PAYIN REQUESTS ----------
 
-  async exportPayInRequests({ user, merchantId, startDate, endDate, filters, filePath }) {
+  async exportPayInRequests({
+    user,
+    merchantId,
+    startDate,
+    endDate,
+    filters,
+    filePath,
+  }) {
     const where = this.scopeWhere(user, merchantId);
     this.dateRange(where, "requestedAt", startDate, endDate);
     this.applyFilters(
-      where, filters,
-      ["status", "paymentMode", "gatewayId", "merchantId", "userId", "amount", "search", "feeType"],
-      user, this.requestSearch,
+      where,
+      filters,
+      [
+        "status",
+        "paymentMode",
+        "gatewayId",
+        "merchantId",
+        "userId",
+        "amount",
+        "search",
+        "feeType",
+      ],
+      user,
+      this.requestSearch,
     );
     const { merchants, gateways } = await this.loadLookups();
 
@@ -1437,15 +1446,32 @@ class CsvExportService {
       columns,
       query: {
         select: {
-          id: true, merchantId: true, gatewayId: true, userId: true,
-          amount: true, status: true, merchantReference: true,
-          gatewayReference: true, customerName: true, customerEmail: true,
-          customerPhone: true, paymentMode: true, feeType: true,
-          feeAmount: true, taxAmount: true, amountToCredit: true,
-          platformProfit: true, merchantRate: true, amountInINR: true,
-          currency: true, failureReason: true, requestedAt: true,
-          completedAt: true, createdAt: true,
-          metadata: true, responseLog: true, // only used to extract UTR
+          id: true,
+          merchantId: true,
+          gatewayId: true,
+          userId: true,
+          amount: true,
+          status: true,
+          merchantReference: true,
+          gatewayReference: true,
+          customerName: true,
+          customerEmail: true,
+          customerPhone: true,
+          paymentMode: true,
+          feeType: true,
+          feeAmount: true,
+          taxAmount: true,
+          amountToCredit: true,
+          platformProfit: true,
+          merchantRate: true,
+          amountInINR: true,
+          currency: true,
+          failureReason: true,
+          requestedAt: true,
+          completedAt: true,
+          createdAt: true,
+          metadata: true,
+          responseLog: true, // only used to extract UTR
         },
       },
     });
@@ -1453,13 +1479,30 @@ class CsvExportService {
 
   // ---------- PAYOUT REQUESTS ----------
 
-  async exportPayOutRequests({ user, merchantId, startDate, endDate, filters, filePath }) {
+  async exportPayOutRequests({
+    user,
+    merchantId,
+    startDate,
+    endDate,
+    filters,
+    filePath,
+  }) {
     const where = this.scopeWhere(user, merchantId);
     this.dateRange(where, "requestedAt", startDate, endDate);
     this.applyFilters(
-      where, filters,
-      ["status", "paymentMode", "gatewayId", "merchantId", "userId", "amount", "search"],
-      user, this.requestSearch,
+      where,
+      filters,
+      [
+        "status",
+        "paymentMode",
+        "gatewayId",
+        "merchantId",
+        "userId",
+        "amount",
+        "search",
+      ],
+      user,
+      this.requestSearch,
     );
     const { merchants, gateways } = await this.loadLookups();
 
@@ -1493,13 +1536,26 @@ class CsvExportService {
       columns,
       query: {
         select: {
-          id: true, merchantId: true, gatewayId: true, amount: true,
-          status: true, merchantReference: true, gatewayReference: true,
-          beneficiaryName: true, beneficiaryAccount: true,
-          beneficiaryBank: true, beneficiaryIfsc: true, feeAmount: true,
-          taxAmount: true, amountToDebit: true, requestedAt: true,
-          processedAt: true, completedAt: true, createdAt: true,
-          metadata: true, responseLog: true,
+          id: true,
+          merchantId: true,
+          gatewayId: true,
+          amount: true,
+          status: true,
+          merchantReference: true,
+          gatewayReference: true,
+          beneficiaryName: true,
+          beneficiaryAccount: true,
+          beneficiaryBank: true,
+          beneficiaryIfsc: true,
+          feeAmount: true,
+          taxAmount: true,
+          amountToDebit: true,
+          requestedAt: true,
+          processedAt: true,
+          completedAt: true,
+          createdAt: true,
+          metadata: true,
+          responseLog: true,
         },
       },
     });
@@ -1507,13 +1563,27 @@ class CsvExportService {
 
   // ---------- WALLETS (payin + payout share one builder) ----------
 
-  async buildWalletExport(model, extraColumn, { user, merchantId, startDate, endDate, filters, filePath }) {
+  async buildWalletExport(
+    model,
+    extraColumn,
+    { user, merchantId, startDate, endDate, filters, filePath },
+  ) {
     const where = this.scopeWhere(user, merchantId);
     this.dateRange(where, "transactionDate", startDate, endDate);
     this.applyFilters(
-      where, filters,
-      ["merchantId", "userId", "type", "transactionId", "referenceId", "search", "amount"],
-      user, this.walletSearch,
+      where,
+      filters,
+      [
+        "merchantId",
+        "userId",
+        "type",
+        "transactionId",
+        "referenceId",
+        "search",
+        "amount",
+      ],
+      user,
+      this.walletSearch,
     );
     const { merchants } = await this.loadLookups();
 
@@ -1539,10 +1609,17 @@ class CsvExportService {
       columns,
       query: {
         select: {
-          id: true, merchantId: true, amount: true, type: true,
-          description: true, transactionId: true, referenceId: true,
-          transactionDate: true, openingBalance: true,
-          closingBalance: true, createdAt: true,
+          id: true,
+          merchantId: true,
+          amount: true,
+          type: true,
+          description: true,
+          transactionId: true,
+          referenceId: true,
+          transactionDate: true,
+          openingBalance: true,
+          closingBalance: true,
+          createdAt: true,
         },
       },
     });
@@ -1569,7 +1646,8 @@ class CsvExportService {
   async exportSettlements({ user, merchantId, filters, filePath }) {
     const where = this.scopeWhere(user, merchantId);
     this.applyFilters(
-      where, filters,
+      where,
+      filters,
       ["merchantId", "status", "approvalStatus", "amount"],
       user,
     );
@@ -1587,8 +1665,14 @@ class CsvExportService {
       ["fee", (s) => money(s.fee)],
       ["sourceWalletBalanceBefore", (s) => money(s.sourceWalletBalanceBefore)],
       ["sourceWalletBalanceAfter", (s) => money(s.sourceWalletBalanceAfter)],
-      ["destinationWalletBalanceBefore", (s) => money(s.destinationWalletBalanceBefore)],
-      ["destinationWalletBalanceAfter", (s) => money(s.destinationWalletBalanceAfter)],
+      [
+        "destinationWalletBalanceBefore",
+        (s) => money(s.destinationWalletBalanceBefore),
+      ],
+      [
+        "destinationWalletBalanceAfter",
+        (s) => money(s.destinationWalletBalanceAfter),
+      ],
       ["requestedAt", (s) => formatIST(s.requestedAt)],
       ["approvedAt", (s) => formatIST(s.approvedAt)],
       ["processedAt", (s) => formatIST(s.processedAt)],
@@ -1603,12 +1687,21 @@ class CsvExportService {
       columns,
       query: {
         select: {
-          id: true, merchantId: true, amount: true, status: true,
-          approvalStatus: true, description: true, fee: true,
-          sourceWalletBalanceBefore: true, sourceWalletBalanceAfter: true,
+          id: true,
+          merchantId: true,
+          amount: true,
+          status: true,
+          approvalStatus: true,
+          description: true,
+          fee: true,
+          sourceWalletBalanceBefore: true,
+          sourceWalletBalanceAfter: true,
           destinationWalletBalanceBefore: true,
-          destinationWalletBalanceAfter: true, requestedAt: true,
-          approvedAt: true, processedAt: true, completedAt: true,
+          destinationWalletBalanceAfter: true,
+          requestedAt: true,
+          approvedAt: true,
+          processedAt: true,
+          completedAt: true,
           createdAt: true,
         },
       },
@@ -1620,7 +1713,8 @@ class CsvExportService {
   async exportChargebacks({ user, merchantId, filters, filePath }) {
     const where = this.scopeWhere(user, merchantId, { byUser: false });
     this.applyFilters(
-      where, filters,
+      where,
+      filters,
       ["merchantId", "status", "payInRequestId", "amount"],
       user,
     );
@@ -1658,13 +1752,26 @@ class CsvExportService {
       columns,
       query: {
         select: {
-          id: true, merchantId: true, gatewayId: true, payInRequestId: true,
-          amount: true, currency: true, status: true, reason: true,
-          reasonDescription: true, gatewayChargebackId: true,
-          customerName: true, customerEmail: true, customerPhone: true,
-          chargebackFee: true, merchantLiability: true,
-          recoveredAmount: true, initiatedAt: true, respondedAt: true,
-          resolvedAt: true, createdAt: true,
+          id: true,
+          merchantId: true,
+          gatewayId: true,
+          payInRequestId: true,
+          amount: true,
+          currency: true,
+          status: true,
+          reason: true,
+          reasonDescription: true,
+          gatewayChargebackId: true,
+          customerName: true,
+          customerEmail: true,
+          customerPhone: true,
+          chargebackFee: true,
+          merchantLiability: true,
+          recoveredAmount: true,
+          initiatedAt: true,
+          respondedAt: true,
+          resolvedAt: true,
+          createdAt: true,
           payInRequest: { select: { merchantReference: true } },
         },
       },
@@ -1676,7 +1783,8 @@ class CsvExportService {
   async exportRefunds({ user, merchantId, filters, filePath }) {
     const where = this.scopeWhere(user, merchantId, { byUser: false });
     this.applyFilters(
-      where, filters,
+      where,
+      filters,
       ["merchantId", "status", "payInRequestId", "amount"],
       user,
     );
@@ -1710,11 +1818,22 @@ class CsvExportService {
       columns,
       query: {
         select: {
-          id: true, merchantId: true, gatewayId: true, payInRequestId: true,
-          amount: true, currency: true, refundType: true, status: true,
-          reason: true, gatewayRefundId: true, refundFee: true,
-          adjustmentAmount: true, initiatedAt: true, processedAt: true,
-          completedAt: true, createdAt: true,
+          id: true,
+          merchantId: true,
+          gatewayId: true,
+          payInRequestId: true,
+          amount: true,
+          currency: true,
+          refundType: true,
+          status: true,
+          reason: true,
+          gatewayRefundId: true,
+          refundFee: true,
+          adjustmentAmount: true,
+          initiatedAt: true,
+          processedAt: true,
+          completedAt: true,
+          createdAt: true,
           payInRequest: { select: { merchantReference: true } },
         },
       },

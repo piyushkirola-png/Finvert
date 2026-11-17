@@ -15,7 +15,7 @@ const extractUpiIntent = (raw) => {
       return "";
     }
   }
-  
+
   if (typeof raw === "object") {
     const candidate =
       raw.qr_intent ?? raw.qrIntent ?? raw.intent ?? raw.upiIntent ?? null;
@@ -37,7 +37,9 @@ const createPlaygroundPayin = async (req, res) => {
     // Attach merchant and user securely
     if (req.user.role === "USER") {
       if (!req.user.merchantId) {
-        return res.status(403).json({ success: false, message: "No merchant associated" });
+        return res
+          .status(403)
+          .json({ success: false, message: "No merchant associated" });
       }
       requestData.merchantId = req.user.merchantId;
       requestData.userId = req.user.id;
@@ -51,7 +53,7 @@ const createPlaygroundPayin = async (req, res) => {
         deviceId: req.headers["x-device-id"],
         geolocation: req.headers["x-geolocation"],
       },
-      req.user
+      req.user,
     );
 
     const upiIntent = extractUpiIntent(result?.intent ?? result?.qr_intent);
@@ -59,7 +61,7 @@ const createPlaygroundPayin = async (req, res) => {
     if (!upiIntent) {
       console.warn(
         "[Playground Payin] Could not extract UPI intent. Raw result.intent:",
-        result?.intent
+        result?.intent,
       );
     }
 

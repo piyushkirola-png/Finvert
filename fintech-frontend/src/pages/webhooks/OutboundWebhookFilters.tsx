@@ -57,7 +57,7 @@ export default function OutboundWebhookFilters({
   useEffect(() => {
     if (isFiltersVisible) setTempFilters(filters);
   }, [isFiltersVisible]);
-  
+
   const handleApply = () => {
     setFilters(tempFilters);
     setIsFiltersVisible(false);

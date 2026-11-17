@@ -24,7 +24,7 @@ class AirpayPayinIntegrationService {
   // TODO: REPLACE THESE TWO FUNCTIONS WITH AIRPAY'S EXACT LOGIC
   // ============================================================
   _encryptData(data) {
-    // Airpay uses a custom AES encryption. 
+    // Airpay uses a custom AES encryption.
     // Paste their exact Node.js encryption logic here.
     // Example: return crypto.createCipheriv(...)
     console.log("[Airpay] Using stub encryption");
@@ -36,12 +36,20 @@ class AirpayPayinIntegrationService {
     // Paste their exact Node.js checksum logic here.
     // Example: return crypto.createHash('sha256').update(...).digest('hex')
     console.log("[Airpay] Using stub checksum");
-    return "STUB_CHECKSUM"; 
+    return "STUB_CHECKSUM";
   }
   // ============================================================
 
-  async initiatePayInRequest(amount, merchantReference, customer, paymentMode, currency) {
-    console.log(`[Airpay Payin] Initiate: amount=${amount}, ref=${merchantReference}, mode=${paymentMode}`);
+  async initiatePayInRequest(
+    amount,
+    merchantReference,
+    customer,
+    paymentMode,
+    currency,
+  ) {
+    console.log(
+      `[Airpay Payin] Initiate: amount=${amount}, ref=${merchantReference}, mode=${paymentMode}`,
+    );
 
     // Airpay only supports UPI for this endpoint
     if (paymentMode !== "UPI" && paymentMode !== "UPI_INTENT") {
@@ -81,7 +89,7 @@ class AirpayPayinIntegrationService {
       });
 
       const data = response.data;
-      
+
       if (data.status_code !== "200" || data.status !== "Success") {
         return {
           status: PayInRequestStatus.FAILED,
@@ -105,7 +113,6 @@ class AirpayPayinIntegrationService {
           rawResponse: data,
         },
       };
-
     } catch (error) {
       console.error("[Airpay Payin] Error:", error.message);
       return {

@@ -433,7 +433,7 @@ class PaymentOrchestrator {
         );
         continue;
       }
-      
+
       // 3. Check if gateway is active
       if (!priority.gateway.isActive) {
         console.log(`[Failover] ${priority.gateway.name} is inactive`);

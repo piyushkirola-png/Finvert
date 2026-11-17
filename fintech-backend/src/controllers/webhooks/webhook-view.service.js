@@ -290,9 +290,7 @@ const retryOutboundWebhook = async (id) => {
       },
     });
 
-    throw new Error(
-      `Merchant webhook URL is unreachable.`,
-    );
+    throw new Error(`Merchant webhook URL is unreachable.`);
   }
 };
 

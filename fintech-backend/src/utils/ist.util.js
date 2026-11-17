@@ -73,4 +73,10 @@ const getDateRange = (filters = {}) => {
   }
 };
 
-module.exports = { IST_OFFSET_MS, DAY_MS, startOfISTDay, addDays, getDateRange };
+module.exports = {
+  IST_OFFSET_MS,
+  DAY_MS,
+  startOfISTDay,
+  addDays,
+  getDateRange,
+};

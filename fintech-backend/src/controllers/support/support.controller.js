@@ -4,16 +4,14 @@ exports.createTicket = async (req, res, next) => {
   try {
     const { topic, subject, message } = req.body;
     const files = req.files || [];
-    res
-      .status(201)
-      .json(
-        await service.createTicket(req.user, {
-          topic,
-          subject,
-          message,
-          files,
-        }),
-      );
+    res.status(201).json(
+      await service.createTicket(req.user, {
+        topic,
+        subject,
+        message,
+        files,
+      }),
+    );
   } catch (e) {
     next(e);
   }

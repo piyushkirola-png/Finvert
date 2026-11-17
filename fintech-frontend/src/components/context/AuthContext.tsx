@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       didInitialExpiryCheck.current = true;
       const stored = readStoredLastActivity();
       if (Date.now() - stored > SESSION_TIMEOUT_MS) {
-        void logoutService().catch(() => { });
+        void logoutService().catch(() => {});
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(REFRESH_KEY);
         localStorage.removeItem(USER_KEY);
@@ -107,8 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(USER_KEY, JSON.stringify(next));
   }, []);
 
-  const touchSession = useCallback(() => {
-  }, []);
+  const touchSession = useCallback(() => {}, []);
 
   const login = useCallback(
     async (payload: LoginPayload, role: Role) => {
@@ -135,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    await logoutService().catch(() => { });
+    await logoutService().catch(() => {});
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem(USER_KEY);
@@ -146,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    
+
     const onStorage = (e: StorageEvent) => {
       if (e.key === LAST_ACTIVITY_KEY && e.newValue) {
         const n = Number(e.newValue);

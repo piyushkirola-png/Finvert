@@ -93,8 +93,9 @@ export default function BulkUploadTable({ filters, isAdmin = false }: Props) {
       <div className={TABLE_SHELL}>
         <div className="overflow-x-auto overflow-y-auto max-h-[70vh] relative">
           <table
-            className={`w-full whitespace-nowrap [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap ${isAdmin ? "min-w-[1400px]" : "min-w-[1000px]"
-              }`}
+            className={`w-full whitespace-nowrap [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap ${
+              isAdmin ? "min-w-[1400px]" : "min-w-[1000px]"
+            }`}
           >
             <thead className="sticky top-0 z-10">
               <tr>
@@ -170,18 +171,20 @@ export default function BulkUploadTable({ filters, isAdmin = false }: Props) {
                       </td>
                       <td className={TD}>
                         <span
-                          className={`${BADGE} ${mode === "Scheduled"
+                          className={`${BADGE} ${
+                            mode === "Scheduled"
                               ? BADGE_COLORS.green
                               : BADGE_COLORS.yellow
-                            }`}
+                          }`}
                         >
                           {mode}
                         </span>
                       </td>
                       <td className={TD}>
                         <span
-                          className={`${BADGE} ${BADGE_COLORS[statusTone[record.status] || "slate"]
-                            }`}
+                          className={`${BADGE} ${
+                            BADGE_COLORS[statusTone[record.status] || "slate"]
+                          }`}
                         >
                           {record.status.replace("_", " ")}
                         </span>

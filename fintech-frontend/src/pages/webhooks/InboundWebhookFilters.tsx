@@ -20,7 +20,13 @@ interface Props {
   eventOptions: string[];
 }
 
-const statusOptions = ["all", "SUCCESS", "PROCESSING", "FAILED", "ACKNOWLEDGED"];
+const statusOptions = [
+  "all",
+  "SUCCESS",
+  "PROCESSING",
+  "FAILED",
+  "ACKNOWLEDGED",
+];
 
 const EMPTY: InboundFilterValues = {
   status: "all",

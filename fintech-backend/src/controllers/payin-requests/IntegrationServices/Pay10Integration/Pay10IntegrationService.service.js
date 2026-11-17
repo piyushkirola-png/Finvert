@@ -4,15 +4,14 @@ const { PayInRequestStatus } = require("@prisma/client");
 
 class Pay10IntegrationService {
   constructor() {
-    this.baseUrl =
-      process.env.PAY10_BASE_URL || "https://secure.pay10.com";
+    this.baseUrl = process.env.PAY10_BASE_URL || "https://secure.pay10.com";
     this.mid = process.env.PAY10_MID;
     this.secretKey = process.env.PAY10_SECRET_KEY;
     this.aesKey = process.env.PAY10_API_KEY;
     this.timeoutMs = Number(process.env.PAY10_TIMEOUT_MS || 30000);
     this.endpoint = `${this.baseUrl}/pgws/upi/collectpay`;
   }
-  
+
   async initiatePayInRequest(
     amount,
     merchantReference,
@@ -55,7 +54,10 @@ class Pay10IntegrationService {
       });
     }
 
-    if (!customer?.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+    if (
+      !customer?.email ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)
+    ) {
       return this._buildFailureResponse({
         failureReason: "Customer email is invalid",
         failureCode: "INVALID_EMAIL",
@@ -119,9 +121,7 @@ class Pay10IntegrationService {
         ].includes(code) ||
         !error.response
       ) {
-        const ambiguous = new Error(
-          `Pay10 unreachable: ${error.message}`,
-        );
+        const ambiguous = new Error(`Pay10 unreachable: ${error.message}`);
         ambiguous.code = code || "ETIMEDOUT";
         ambiguous.isAmbiguous = true;
         throw ambiguous;
@@ -255,14 +255,10 @@ class Pay10IntegrationService {
         HASH: hash,
       };
 
-      const response = await axios.post(
-        `${this.baseUrl}/pgws/transact`,
-        body,
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: this.timeoutMs,
-        },
-      );
+      const response = await axios.post(`${this.baseUrl}/pgws/transact`, body, {
+        headers: { "Content-Type": "application/json" },
+        timeout: this.timeoutMs,
+      });
 
       const decoded =
         typeof response.data === "string"

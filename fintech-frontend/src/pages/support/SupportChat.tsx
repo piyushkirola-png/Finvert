@@ -69,10 +69,11 @@ export default function SupportChat({
               <button
                 onClick={() => setConfirmAction(closed ? "REOPEN" : "CLOSE")}
                 disabled={updateStatus.isPending}
-                className={`h-9 px-3 rounded-md text-white text-sm font-medium transition disabled:opacity-50 ${closed
+                className={`h-9 px-3 rounded-md text-white text-sm font-medium transition disabled:opacity-50 ${
+                  closed
                     ? "bg-green-600 hover:bg-green-700"
                     : "bg-red-600 hover:bg-red-700"
-                  }`}
+                }`}
               >
                 {closed ? "Reopen Ticket" : "Close Ticket"}
               </button>
@@ -131,10 +132,11 @@ export default function SupportChat({
               <button
                 onClick={handleConfirm}
                 disabled={updateStatus.isPending}
-                className={`h-9 px-3 rounded-md text-white text-sm font-medium transition disabled:opacity-50 ${confirmAction === "CLOSE"
+                className={`h-9 px-3 rounded-md text-white text-sm font-medium transition disabled:opacity-50 ${
+                  confirmAction === "CLOSE"
                     ? "bg-red-600 hover:bg-red-700"
                     : "bg-green-600 hover:bg-green-700"
-                  }`}
+                }`}
               >
                 {updateStatus.isPending
                   ? "Please wait…"

@@ -78,7 +78,7 @@ export const useDownloadPayinBulkUploadErrorReport = () =>
     },
   });
 
-  export const useDownloadPayinUpiIntents = () =>
+export const useDownloadPayinUpiIntents = () =>
   useMutation({
     mutationFn: (id: number) => downloadPayinUpiIntents(id),
     onSuccess: () => toast.success("UPI intents downloaded successfully"),

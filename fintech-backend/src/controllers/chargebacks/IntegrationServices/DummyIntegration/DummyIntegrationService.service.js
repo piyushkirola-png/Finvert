@@ -12,12 +12,12 @@ class DummyChargebackIntegrationService {
       const response = await axios.post(
         `${BASE_URL}/chargeback/${gatewayChargebackId}/accept`,
         {},
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       return response.data.data;
     } catch (error) {
       throw new Error(
-        error.response?.data?.message || "Failed to accept dispute with Dummy"
+        error.response?.data?.message || "Failed to accept dispute with Dummy",
       );
     }
   }
@@ -30,12 +30,12 @@ class DummyChargebackIntegrationService {
       const response = await axios.post(
         `${BASE_URL}/chargeback/${gatewayChargebackId}/contest`,
         { evidence: evidenceData || {} },
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       return response.data.data;
     } catch (error) {
       throw new Error(
-        error.response?.data?.message || "Failed to contest dispute with Dummy"
+        error.response?.data?.message || "Failed to contest dispute with Dummy",
       );
     }
   }
@@ -47,12 +47,12 @@ class DummyChargebackIntegrationService {
     try {
       const response = await axios.get(
         `${BASE_URL}/chargeback/${gatewayChargebackId}`,
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       return response.data.data;
     } catch (error) {
       throw new Error(
-        error.response?.data?.message || "Failed to fetch dispute from Dummy"
+        error.response?.data?.message || "Failed to fetch dispute from Dummy",
       );
     }
   }

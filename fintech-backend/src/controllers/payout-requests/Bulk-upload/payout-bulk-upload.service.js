@@ -80,7 +80,7 @@ class PayoutBulkUploadService {
         type: type,
       },
     });
-    
+
     const mode = options.mode || "instant";
     const scheduleType = options.scheduleType || "immediate";
     const intervalValue = Number(options.intervalValue || 1);
@@ -195,7 +195,7 @@ class PayoutBulkUploadService {
           errorReport: buildErrorReport(errors),
         },
       });
-      
+
       return {
         success: true,
         mode,

@@ -18,7 +18,7 @@ class DummyRefundIntegrationService {
           refund_amount: payload.amount,
           refund_note: payload.notes || "Refund initiated by admin",
         },
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
 
       return {
@@ -28,7 +28,7 @@ class DummyRefundIntegrationService {
       };
     } catch (error) {
       throw new Error(
-        error.response?.data?.message || "Failed to create refund with Dummy"
+        error.response?.data?.message || "Failed to create refund with Dummy",
       );
     }
   }
@@ -40,12 +40,12 @@ class DummyRefundIntegrationService {
     try {
       const response = await axios.get(
         `${BASE_URL}/refund/${gatewayRefundId}`,
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       return response.data.data;
     } catch (error) {
       throw new Error(
-        error.response?.data?.message || "Failed to fetch refund from Dummy"
+        error.response?.data?.message || "Failed to fetch refund from Dummy",
       );
     }
   }

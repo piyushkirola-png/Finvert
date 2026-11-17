@@ -75,7 +75,10 @@ class FiatPayIntegrationService {
       });
     }
 
-    if (!customer?.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+    if (
+      !customer?.email ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)
+    ) {
       return this._buildFailureResponse({
         failureReason: "Customer email is invalid",
         failureCode: "INVALID_EMAIL",
@@ -115,9 +118,7 @@ class FiatPayIntegrationService {
         ].includes(code) ||
         !error.response
       ) {
-        const ambiguous = new Error(
-          `FiatPay unreachable: ${error.message}`,
-        );
+        const ambiguous = new Error(`FiatPay unreachable: ${error.message}`);
         ambiguous.code = code || "ETIMEDOUT";
         ambiguous.isAmbiguous = true;
         throw ambiguous;
@@ -131,9 +132,7 @@ class FiatPayIntegrationService {
           error.message ||
           "FiatPay request failed",
         failureCode:
-          errData?.res_status === "REJECT"
-            ? "UNAUTHORIZED"
-            : "GATEWAY_ERROR",
+          errData?.res_status === "REJECT" ? "UNAUTHORIZED" : "GATEWAY_ERROR",
         metadata: {
           httpStatus: error.response?.status,
           rawResponse: errData,

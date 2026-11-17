@@ -207,10 +207,11 @@ export default function BulkUploadForm({ onSubmitted, onClose }: Props) {
                   <button
                     key={m}
                     onClick={() => setMode(m)}
-                    className={`px-3 py-1 rounded text-xs font-medium transition ${mode === m
+                    className={`px-3 py-1 rounded text-xs font-medium transition ${
+                      mode === m
                         ? "bg-white text-slate-900 shadow-sm"
                         : "text-slate-500 hover:text-slate-700"
-                      }`}
+                    }`}
                   >
                     {m === "instant" ? "Process Now" : "Schedule Later"}
                   </button>
@@ -317,8 +318,9 @@ export default function BulkUploadForm({ onSubmitted, onClose }: Props) {
                   setIsDragging(false);
                   void handleFileSelect(e.dataTransfer.files?.[0] ?? null);
                 }}
-                className={`rounded-lg border-2 border-dashed p-8 text-center transition ${isDragging ? "border-slate-900" : "border-slate-200"
-                  } bg-slate-50`}
+                className={`rounded-lg border-2 border-dashed p-8 text-center transition ${
+                  isDragging ? "border-slate-900" : "border-slate-200"
+                } bg-slate-50`}
               >
                 <label
                   htmlFor="payin-bulk-upload-input"

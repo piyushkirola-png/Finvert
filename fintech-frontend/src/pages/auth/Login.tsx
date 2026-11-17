@@ -442,12 +442,13 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={loading || !canSubmit}
-                    className={`w-full py-3.5 rounded-lg font-bold text-[15px] text-white transition-colors ${loading
-                      ? "bg-[#6B3FE0]/60 cursor-not-allowed"
-                      : canSubmit
-                        ? "bg-[#6B3FE0] hover:bg-[#5a31c9]"
-                        : "bg-[#6B3FE0]/40 cursor-not-allowed"
-                      }`}
+                    className={`w-full py-3.5 rounded-lg font-bold text-[15px] text-white transition-colors ${
+                      loading
+                        ? "bg-[#6B3FE0]/60 cursor-not-allowed"
+                        : canSubmit
+                          ? "bg-[#6B3FE0] hover:bg-[#5a31c9]"
+                          : "bg-[#6B3FE0]/40 cursor-not-allowed"
+                    }`}
                   >
                     {loading ? "Authenticating..." : "Enter Dashboard"}
                   </button>
@@ -515,12 +516,13 @@ export default function Login() {
                     <button
                       type="submit"
                       disabled={loading || !canSubmit}
-                      className={`w-full py-3.5 rounded-lg font-semibold text-[15px] text-white transition-colors ${loading
-                        ? "bg-blue-300 cursor-not-allowed"
-                        : canSubmit
-                          ? "bg-blue-500 hover:bg-blue-600"
-                          : "bg-blue-300 cursor-not-allowed"
-                        }`}
+                      className={`w-full py-3.5 rounded-lg font-semibold text-[15px] text-white transition-colors ${
+                        loading
+                          ? "bg-blue-300 cursor-not-allowed"
+                          : canSubmit
+                            ? "bg-blue-500 hover:bg-blue-600"
+                            : "bg-blue-300 cursor-not-allowed"
+                      }`}
                     >
                       {loading ? "Authenticating..." : "Enter Dashboard"}
                     </button>

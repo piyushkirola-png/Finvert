@@ -8,10 +8,8 @@ class FiatPayPayoutIntegrationService {
     this.clientId = process.env.FIATPAY_CLIENT_ID;
     this.clientSecret = process.env.FIATPAY_CLIENT_SECRET;
     this.timeoutMs = Number(process.env.FIATPAY_TIMEOUT_MS || 30000);
-    this.senderFirstName =
-      process.env.FIATPAY_SENDER_FIRST_NAME || "Merchant";
-    this.senderLastName =
-      process.env.FIATPAY_SENDER_LAST_NAME || "Account";
+    this.senderFirstName = process.env.FIATPAY_SENDER_FIRST_NAME || "Merchant";
+    this.senderLastName = process.env.FIATPAY_SENDER_LAST_NAME || "Account";
   }
 
   getHeaders() {
@@ -73,9 +71,7 @@ class FiatPayPayoutIntegrationService {
     }
     if (
       !beneficiary.ifsc ||
-      !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(
-        String(beneficiary.ifsc).toUpperCase(),
-      )
+      !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(String(beneficiary.ifsc).toUpperCase())
     ) {
       return this._buildFailureResponse({
         failureReason: "Beneficiary IFSC is invalid",
@@ -148,9 +144,7 @@ class FiatPayPayoutIntegrationService {
           error.message ||
           "FiatPay payout request failed",
         failureCode:
-          errData?.res_status === "REJECT"
-            ? "UNAUTHORIZED"
-            : "GATEWAY_ERROR",
+          errData?.res_status === "REJECT" ? "UNAUTHORIZED" : "GATEWAY_ERROR",
         metadata: {
           httpStatus: error.response?.status,
           rawResponse: errData,
