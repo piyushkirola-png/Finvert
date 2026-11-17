@@ -67,6 +67,9 @@ import OutboundWebhooks from "./pages/webhooks/OutboundWebhooks";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 import TermsOfService from "./pages/legal/TermsOfService";
 
+/* SUPPORT */
+import SupportPage from "./pages/support";
+
 export default function App() {
   return (
     <Routes>
@@ -160,6 +163,9 @@ export default function App() {
           {/* WEBHOOKS */}
           <Route path="/inbound" element={<InboundWebhooks />} />
           <Route path="/outbound" element={<OutboundWebhooks />} />
+
+          {/* SUPPORT */}
+          <Route path="/support" element={<SupportPage />} />
 
           {/* ACCOUNT */}
           <Route path="/profile" element={<Profile />} />

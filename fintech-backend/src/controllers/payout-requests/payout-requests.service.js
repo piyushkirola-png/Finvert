@@ -9,7 +9,6 @@ const {
 const axios = require("axios");
 const prisma = require("../../../config/prisma");
 const { encrypt, decrypt } = require("../../utils/encryption.util");
-const auditLogService = require("../../services/audit-log.service");
 
 // INTEGRATION IMPORTS
 const fiatPayPayoutIntegration = require("./IntegrationServices/FiatPayIntegration/FiatPayIntegrationService.service");
@@ -313,14 +312,6 @@ class PayoutRequestsService {
       console.error("Failed to create payout request:", error);
       throw new Error("Failed to create payout request");
     }
-
-    await this._audit(
-      currentUser.id,
-      currentUser.merchantId,
-      pendingPayoutRequest,
-      "CREATED",
-      { merchantReference: pendingPayoutRequest.merchantReference },
-    );
 
     const result = await this._dispatchAndSettle(pendingPayoutRequest, beneficiary, {
       paymentMode: createPayoutRequestDto.paymentMode || "BANK",
@@ -732,21 +723,6 @@ class PayoutRequestsService {
     throw lastError;
   }
 
-  async _audit(userId, merchantId, request, action, details) {
-    try {
-      await auditLogService.logPayOutRequest(
-        userId,
-        merchantId,
-        request.id,
-        request.amount,
-        action,
-        details,
-      );
-    } catch (error) {
-      console.error(`[Audit] ${action} log failed:`, error.message);
-    }
-  }
-
   // Merchant webhook in the background
   _notifyMerchant(request) {
     this.sendMerchantWebhookWithRetry(request).catch((error) =>
@@ -840,13 +816,6 @@ class PayoutRequestsService {
 
     if (changed) {
       this._notifyMerchant(updated);
-      await this._audit(
-        updated.userId,
-        updated.merchantId,
-        updated,
-        "COMPLETED",
-        { amountToDebit: updated.amountToDebit },
-      );
       await invalidate(PAYOUT_REQUESTS_LIST);
       await invalidate("cache:payout:wallet");
       await invalidate("cache:payout:wallet:summary");
@@ -915,10 +884,6 @@ class PayoutRequestsService {
 
     if (changed) {
       this._notifyMerchant(updated);
-      await this._audit(updated.userId, updated.merchantId, updated, "FAILED", {
-        failureReason: updated.failureReason,
-        failureCode: updated.failureCode,
-      });
       await invalidate(PAYOUT_REQUESTS_LIST);
       await invalidate("cache:payout:wallet");
       await invalidate("cache:payout:wallet:summary");

@@ -24,6 +24,7 @@ import {
   FileDown,
   ClipboardCheck,
   Play,
+  MessageSquare,
 } from "lucide-react";
 import type { Role } from "../../types/auth";
 
@@ -160,6 +161,14 @@ const documentation: SidebarSection = {
   ],
 };
 
+const support: SidebarSection = {
+  title: "Support",
+  icon: MessageSquare,
+  items: [
+    { label: "Support Tickets", path: "/support", icon: MessageSquare },
+  ],
+};
+
 export function getSections(
   role: Role | null,
   isPremium: boolean,
@@ -175,6 +184,7 @@ export function getSections(
       apiReference,
       configuration,
       monitoring,
+      support
     ];
   }
   if (role === "USER") {
@@ -186,6 +196,7 @@ export function getSections(
       documentation,
       apiReference,
       reports,
+      support
     ];
   }
   return [];

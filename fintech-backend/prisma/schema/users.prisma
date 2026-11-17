@@ -19,13 +19,12 @@ model User {
   defaultCurrency     String   @default("INR")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
-
+  
   merchant            Merchant?              @relation(fields: [merchantId], references: [id])
   sessions            UserSession[]
   permissions         UserPermission[]
   riskBlocksCreated   RiskBlock[] @relation("RiskBlockCreatedBy")
   passwordResets      PasswordReset[]
-  auditLogs           AuditLog[]
   payInRequests       PayInRequest[]
   payInWallets        PayInWallet[]
   payInWalletSummaries PayInWalletSummary[]
@@ -35,6 +34,8 @@ model User {
   settlements         Settlement[]
   csvExports          CsvExport[]
   bulkUploads         BulkUpload[]
+  supportTickets         SupportTicket[]  @relation("SupportTicketOwner")
+  supportMessages        SupportMessage[] @relation("SupportMessageSender")
 
   @@index([merchantId])
   @@index([email])

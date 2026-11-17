@@ -182,3 +182,16 @@ enum CardNetwork {
   OTHER
   UNKNOWN
 }
+
+enum SupportTopic {
+  PAYMENT_ISSUE
+  ACCOUNT_RELATED
+  TECHNICAL_SUPPORT
+  FEATURE_REQUEST
+  OTHER
+}
+
+enum SupportStatus {
+  OPEN
+  CLOSED
+}

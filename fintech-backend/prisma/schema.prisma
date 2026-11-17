@@ -193,6 +193,19 @@ enum CardNetwork {
   UNKNOWN
 }
 
+enum SupportTopic {
+  PAYMENT_ISSUE
+  ACCOUNT_RELATED
+  TECHNICAL_SUPPORT
+  FEATURE_REQUEST
+  OTHER
+}
+
+enum SupportStatus {
+  OPEN
+  CLOSED
+}
+
 model Gateway {
   id             Int      @id @default(autoincrement())
   name           String
@@ -306,7 +319,6 @@ model Merchant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  auditLogs               AuditLog[]
   users                   User[]
   merchantRates           MerchantRate[]
   merchantDocuments       MerchantDocument[]
@@ -326,6 +338,7 @@ model Merchant {
   refunds                 Refund[]
   bulkUploads             BulkUpload[]
   scheduledTasks          ScheduledTask[]
+  supportTickets SupportTicket[]
 
   @@index([status])
   @@index([createdAt])
@@ -427,13 +440,12 @@ model User {
   defaultCurrency     String   @default("INR")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
-
+  
   merchant            Merchant?              @relation(fields: [merchantId], references: [id])
   sessions            UserSession[]
   permissions         UserPermission[]
   riskBlocksCreated   RiskBlock[] @relation("RiskBlockCreatedBy")
   passwordResets      PasswordReset[]
-  auditLogs           AuditLog[]
   payInRequests       PayInRequest[]
   payInWallets        PayInWallet[]
   payInWalletSummaries PayInWalletSummary[]
@@ -443,6 +455,8 @@ model User {
   settlements         Settlement[]
   csvExports          CsvExport[]
   bulkUploads         BulkUpload[]
+  supportTickets         SupportTicket[]  @relation("SupportTicketOwner")
+  supportMessages        SupportMessage[] @relation("SupportMessageSender")
 
   @@index([merchantId])
   @@index([email])
@@ -506,33 +520,6 @@ model UserPermission {
   @@unique([userId, permissionId])
   @@index([userId])
   @@index([permissionId])
-}
-
-model AuditLog {
-  id          Int      @id @default(autoincrement())
-  userId      Int?
-  merchantId  Int?
-  action      String
-  resource    String
-  resourceId  String?
-  status      String?
-  amount      Float?
-  description String?
-  changes     Json?
-  details     Json?
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime @default(now())
-
-  user     User?     @relation(fields: [userId], references: [id])
-  merchant Merchant? @relation(fields: [merchantId], references: [id])
-
-  @@index([userId])
-  @@index([merchantId])
-  @@index([action])
-  @@index([resource])
-  @@index([status])
-  @@index([createdAt])
 }
 
 model PayInRequest {
@@ -1138,4 +1125,61 @@ model ScheduledTask {
   @@index([scheduledTime])
   @@index([bulkUploadId])
   @@index([type])
+}
+
+model SupportTicket {
+  id           Int           @id @default(autoincrement())
+  ticketNumber String        @unique
+  userId       Int
+  merchantId   Int?
+  topic        SupportTopic
+  subject      String
+  status       SupportStatus @default(OPEN)
+  closedById   Int?
+  closedAt     DateTime?
+  reopenedById Int?
+  reopenedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user       User             @relation("SupportTicketOwner", fields: [userId], references: [id])
+  merchant   Merchant?        @relation(fields: [merchantId], references: [id])
+  messages   SupportMessage[]
+
+  @@index([userId])
+  @@index([merchantId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
+}
+
+model SupportMessage {
+  id         Int      @id @default(autoincrement())
+  ticketId   Int
+  senderId   Int
+  senderRole String
+  body       String
+  createdAt  DateTime @default(now())
+
+  ticket      SupportTicket      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender      User               @relation("SupportMessageSender", fields: [senderId], references: [id])
+  attachments SupportAttachment[]
+
+  @@index([ticketId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model SupportAttachment {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  message SupportMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
 }

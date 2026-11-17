@@ -9,7 +9,6 @@ const {
 } = require("@prisma/client");
 const crypto = require("crypto");
 const prisma = require("../../../config/prisma");
-const auditLogService = require("../../services/audit-log.service");
 
 // Import Forgein Currency Exchange Rates
 const paymentOrchestrator = require("./Orchestrator/orchestrator.service");
@@ -288,15 +287,6 @@ class PayInRequestsService {
         const created = await prisma.payInRequest.create({
           data: payInRequestData,
         });
-
-        await auditLogService.logPayInRequest(
-          currentUser.id,
-          currentUser.merchantId,
-          created.id,
-          created.amount,
-          "CREATED",
-          { merchantReference: created.merchantReference },
-        );
 
         return { created };
       } catch (error) {

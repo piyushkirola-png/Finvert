@@ -3,7 +3,6 @@ const path = require("path");
 const XLSX = require("xlsx");
 const payoutRequestsService = require("../payout-requests.service");
 const prisma = require("../../../../config/prisma");
-const auditLogService = require("../../../services/audit-log.service");
 
 class PayoutBulkUploadService {
   async processBulkUpload({
@@ -81,15 +80,7 @@ class PayoutBulkUploadService {
         type: type,
       },
     });
-
-    await auditLogService.logBulkUpload(
-      reqUser.id,
-      reqUser.merchantId,
-      originalName,
-      normalizedRows.length,
-      "STARTED",
-    );
-
+    
     const mode = options.mode || "instant";
     const scheduleType = options.scheduleType || "immediate";
     const intervalValue = Number(options.intervalValue || 1);
@@ -204,15 +195,7 @@ class PayoutBulkUploadService {
           errorReport: buildErrorReport(errors),
         },
       });
-
-      await auditLogService.logBulkUpload(
-        reqUser.id,
-        reqUser.merchantId,
-        originalName,
-        normalizedRows.length,
-        "COMPLETED",
-      );
-
+      
       return {
         success: true,
         mode,

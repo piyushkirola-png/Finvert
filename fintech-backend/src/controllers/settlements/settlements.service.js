@@ -1,5 +1,4 @@
 const prisma = require("../../../config/prisma");
-const auditLogService = require("../../services/audit-log.service");
 
 class SettlementService {
   /**
@@ -54,14 +53,6 @@ class SettlementService {
           },
         },
       });
-
-      await auditLogService.logSettlement(
-        adminId,
-        merchantId,
-        settlement.id,
-        settlement.amount,
-        "CREATED",
-      );
 
       return settlement;
     });
@@ -321,14 +312,6 @@ class SettlementService {
             },
           },
         });
-
-        await auditLogService.logSettlement(
-          adminId,
-          merchantId,
-          settlement.id,
-          settlement.amount,
-          "PROCESSED",
-        );
 
         return settlement;
       },

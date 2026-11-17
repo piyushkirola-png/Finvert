@@ -5,7 +5,6 @@ const axios = require("axios");
 const payInRequestsService = require("../payin-requests.service");
 const { generateSignature } = require("../../../utils/hmac.util");
 const prisma = require("../../../../config/prisma");
-const auditLogService = require("../../../services/audit-log.service");
 
 class BulkUploadService {
   /**
@@ -106,14 +105,6 @@ class BulkUploadService {
       where: { id: bulkUpload.id },
       data: { status: "PROCESSING" },
     });
-
-    await auditLogService.logBulkUpload(
-      reqUser.id,
-      reqUser.merchantId,
-      originalName,
-      normalizedRows.length,
-      "STARTED",
-    );
 
     const intervalMs =
       intervalUnit === "seconds"
@@ -259,14 +250,6 @@ class BulkUploadService {
           }
         } catch (e) {}
       }
-
-      await auditLogService.logBulkUpload(
-        reqUser.id,
-        reqUser.merchantId,
-        originalName,
-        normalizedRows.length,
-        "COMPLETED",
-      );
 
       return {
         success: true,

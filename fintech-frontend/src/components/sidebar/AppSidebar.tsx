@@ -23,6 +23,7 @@ export default function AppSidebar() {
     "Documentation",
     "Configuration",
     "Monitoring",
+    "Support"
   ]);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);

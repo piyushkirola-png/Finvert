@@ -1,6 +1,5 @@
 const prisma = require("../../../config/prisma");
 const bcrypt = require("bcryptjs");
-const auditLogService = require("../../services/audit-log.service");
 
 const createUser = async (data) => {
   const { fullName, email, phoneNumber, password, isActive, merchantId, role } =
@@ -25,7 +24,6 @@ const createUser = async (data) => {
       role: role || "USER",
     },
   });
-  await auditLogService.logUserCreated(null, user.email, user.role);
 
   delete user.hashedPassword;
   return user;
@@ -141,7 +139,6 @@ const updateUser = async (id, data) => {
   if (data.email !== undefined) changes.email = data.email;
   if (data.role !== undefined) changes.role = data.role;
   if (data.isActive !== undefined) changes.isActive = data.isActive;
-  await auditLogService.logUserUpdated(null, userId, user.email, changes);
 
   delete user.hashedPassword;
   return user;
@@ -155,8 +152,6 @@ const deleteUser = async (id) => {
     where: { id: userId },
   });
   if (!user) throw new Error("User not found");
-
-  await auditLogService.logUserDeleted(null, userId, user.email);
 
   // Soft delete - just deactivate
   const updatedUser = await prisma.user.update({
@@ -180,7 +175,6 @@ const hardDeleteUser = async (id) => {
   await prisma.userSession.deleteMany({ where: { userId: userId } });
   await prisma.passwordReset.deleteMany({ where: { userId: userId } });
   await prisma.userPermission.deleteMany({ where: { userId: userId } });
-  await prisma.auditLog.deleteMany({ where: { userId: userId } });
 
   return await prisma.user.delete({ where: { id: userId } });
 };

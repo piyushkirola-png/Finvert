@@ -7,7 +7,6 @@ const {
 } = require("@prisma/client");
 const prisma = require("../../../config/prisma");
 const axios = require("axios");
-const auditLogService = require("../../services/audit-log.service");
 
 const dummyChargebackIntegration = require("./IntegrationServices/DummyIntegration/DummyIntegrationService.service");
 
@@ -171,14 +170,6 @@ class ChargebackService {
 
       return newChargeback;
     });
-
-    await auditLogService.logChargeback(
-      currentUser.id,
-      chargeback.merchantId,
-      chargeback.id,
-      chargeback.amount,
-      chargeback.status,
-    );
 
     // Send notifications
     await this.sendChargebackNotification(chargeback, payInRequest);
@@ -502,14 +493,6 @@ class ChargebackService {
           updated,
           chargeback,
           currentUser,
-        );
-
-        await auditLogService.logChargeback(
-          currentUser.id,
-          chargeback.merchantId,
-          chargeback.id,
-          chargeback.amount,
-          status,
         );
 
         return updated;

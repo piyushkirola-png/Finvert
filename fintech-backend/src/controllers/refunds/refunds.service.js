@@ -6,7 +6,6 @@ const {
   PayInRequestStatus,
 } = require("@prisma/client");
 const prisma = require("../../../config/prisma");
-const auditLogService = require("../../services/audit-log.service");
 
 // IMPORT
 const dummyRefundIntegration = require("./IntegrationServices/DummyIntegration/DummyIntegrationService.service");
@@ -166,14 +165,6 @@ class RefundService {
 
       return newRefund;
     });
-
-    await auditLogService.logRefund(
-      currentUser.id,
-      refund.merchantId,
-      refund.id,
-      refund.amount,
-      refund.status,
-    );
 
     // Send notification
     await this.sendRefundNotification(refund, payInRequest);
@@ -411,14 +402,6 @@ class RefundService {
             refund.payInRequest,
           );
         }
-
-        await auditLogService.logRefund(
-          currentUser.id,
-          refund.merchantId,
-          refund.id,
-          refund.amount,
-          targetStatus,
-        );
 
         return updated;
       },

@@ -7,7 +7,6 @@ const {
   decryptIpList,
 } = require("../../utils/encryption.util");
 const crypto = require("crypto");
-const auditLogService = require("../../services/audit-log.service");
 const {
   validateWebhookConfig,
   previewWebhook,
@@ -149,8 +148,6 @@ const createMerchant = async (data) => {
       bankAccountName: encryptedBankAccountName,
     },
   });
-
-  await auditLogService.logMerchantCreated(null, merchant.name, merchant.email);
 
   return merchant;
 };
@@ -384,12 +381,6 @@ const updateMerchant = async (id, data) => {
   if (data.gstin !== undefined) changes.gstin = "updated";
   if (data.accountNumber !== undefined) changes.accountNumber = "updated";
   if (data.ifscCode !== undefined) changes.ifscCode = "updated";
-  await auditLogService.logMerchantUpdated(
-    null,
-    merchant.id,
-    merchant.name,
-    changes,
-  );
 
   return {
     id: merchant.id,
@@ -448,19 +439,6 @@ const deleteMerchant = async (id) => {
   const merchant = await prisma.merchant.update({
     where: { id: Number(id) },
     data: { status: "INACTIVE", isActive: false },
-  });
-
-  await auditLogService.log({
-    action: "MERCHANT_DELETED",
-    resource: "Merchant",
-    userId: null,
-    resourceId: existingMerchant.id,
-    description: `Merchant ${existingMerchant.name} deactivated`,
-    status: "SUCCESS",
-    details: {
-      merchantId: existingMerchant.id,
-      merchantName: existingMerchant.name,
-    },
   });
 
   return {
@@ -656,16 +634,6 @@ const addIpToWhitelist = async (merchantId, ipAddress) => {
     data: { ipWhitelist: encryptedIps },
   });
 
-  await auditLogService.log({
-    action: "IP_WHITELIST_ADDED",
-    resource: "Merchant",
-    userId: null,
-    merchantId: merchantId,
-    description: `IP ${ipAddress} added to whitelist for merchant ${merchantId}`,
-    status: "SUCCESS",
-    details: { ipAddress, merchantId },
-  });
-
   return { ip: ipAddress, message: "IP added successfully" };
 };
 
@@ -696,16 +664,6 @@ const updateIpInWhitelist = async (merchantId, oldIp, newIp) => {
     data: { ipWhitelist: encryptedIps },
   });
 
-  await auditLogService.log({
-    action: "IP_WHITELIST_UPDATED",
-    resource: "Merchant",
-    userId: null,
-    merchantId: merchantId,
-    description: `IP ${oldIp} updated to ${newIp} for merchant ${merchantId}`,
-    status: "SUCCESS",
-    details: { oldIp, newIp, merchantId },
-  });
-
   return { oldIp, newIp, message: "IP updated successfully" };
 };
 
@@ -729,16 +687,6 @@ const deleteIpFromWhitelist = async (merchantId, ipAddress) => {
   await prisma.merchant.update({
     where: { id: Number(merchantId) },
     data: { ipWhitelist: encryptedIps },
-  });
-
-  await auditLogService.log({
-    action: "IP_WHITELIST_DELETED",
-    resource: "Merchant",
-    userId: null,
-    merchantId: merchantId,
-    description: `IP ${ipAddress} removed from whitelist for merchant ${merchantId}`,
-    status: "SUCCESS",
-    details: { ipAddress, merchantId },
   });
 
   return { ip: ipAddress, message: "IP deleted successfully" };
@@ -776,19 +724,6 @@ const updateWebhookConfig = async (merchantId, config) => {
     data: { webhookConfig: config === null ? Prisma.DbNull : config },
   });
 
-  await auditLogService.log({
-    action: "MERCHANT_WEBHOOK_CONFIG_UPDATED",
-    resource: "Merchant",
-    userId: null,
-    merchantId: merchant.id,
-    description:
-      config === null
-        ? `Webhook format reset to default for merchant ${merchant.name}`
-        : `Webhook format updated for merchant ${merchant.name}`,
-    status: "SUCCESS",
-    details: { merchantId: merchant.id, usingDefault: config === null },
-  });
-
   return {
     id: merchant.id,
     merchantName: merchant.name,
@@ -818,16 +753,6 @@ const approveMerchant = async (id) => {
     data: { status: "ACTIVE", isActive: true },
   });
 
-  await auditLogService.log({
-    action: "MERCHANT_APPROVED",
-    resource: "Merchant",
-    userId: null,
-    resourceId: merchant.id,
-    description: `Merchant ${merchant.name} approved`,
-    status: "SUCCESS",
-    details: { merchantId: merchant.id, merchantName: merchant.name },
-  });
-
   return {
     success: true,
     message: "Merchant approved successfully",
@@ -851,16 +776,6 @@ const rejectMerchant = async (id) => {
   const merchant = await prisma.merchant.update({
     where: { id: Number(id) },
     data: { status: "REJECTED", isActive: false },
-  });
-
-  await auditLogService.log({
-    action: "MERCHANT_REJECTED",
-    resource: "Merchant",
-    userId: null,
-    resourceId: merchant.id,
-    description: `Merchant ${merchant.name} rejected`,
-    status: "SUCCESS",
-    details: { merchantId: merchant.id, merchantName: merchant.name },
   });
 
   return {

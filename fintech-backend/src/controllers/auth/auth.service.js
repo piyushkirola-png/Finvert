@@ -6,7 +6,6 @@ const {
   generateRefreshToken,
   verifyRefreshToken,
 } = require("../../utils/jwt.util");
-const auditLogService = require("../../services/audit-log.service");
 const { decrypt } = require("../../utils/encryption.util");
 
 const transporter = nodemailer.createTransport({
@@ -30,7 +29,6 @@ const adminLogin = async (email, password) => {
 
   const isMatch = await bcrypt.compare(password, admin.hashedPassword);
   if (!isMatch) {
-    await auditLogService.logFailedLogin(email, null, null, "Invalid password");
     throw new Error("Invalid credentials");
   }
 
@@ -63,7 +61,6 @@ const adminLogin = async (email, password) => {
     where: { id: admin.id },
     data: { lastLoginAt: new Date(), failedLoginAttempts: 0 },
   });
-  await auditLogService.logLogin(admin.id, admin.email, null, null);
 
   return {
     accessToken,
@@ -166,13 +163,11 @@ const userLogin = async (data) => {
   });
 
   if (!user) {
-    await auditLogService.logFailedLogin(email, null, null, "User not found");
     throw new Error("Invalid credentials");
   }
 
   const isMatch = await bcrypt.compare(password, user.hashedPassword);
   if (!isMatch) {
-    await auditLogService.logFailedLogin(email, null, null, "Invalid password");
     throw new Error("Invalid credentials");
   }
 
@@ -210,7 +205,6 @@ const userLogin = async (data) => {
     where: { id: user.id },
     data: { lastLoginAt: new Date(), failedLoginAttempts: 0 },
   });
-  await auditLogService.logLogin(user.id, user.email, null, null);
 
   return {
     accessToken,
@@ -267,10 +261,6 @@ const logout = async (accessToken) => {
     where: { accessToken, isRevoked: false },
     data: { isRevoked: true },
   });
-
-  if (session?.user) {
-    await auditLogService.logLogout(session.user.id, session.user.email);
-  }
 
   return { success: true };
 };
@@ -339,13 +329,6 @@ const resetPassword = async (resetToken, newPassword) => {
     where: { email: decoded.email },
     data: { hashedPassword, otp: null, otpExpiry: null },
   });
-
-  const user = await prisma.user.findUnique({
-    where: { email: decoded.email },
-  });
-  if (user) {
-    await auditLogService.logPasswordReset(user.id, user.email);
-  }
 };
 
 // ==================== UPDATE PROFILE ====================
@@ -444,7 +427,6 @@ const updatePassword = async (userId, currentPassword, newPassword) => {
       passwordChangedAt: new Date(),
     },
   });
-  await auditLogService.logPasswordChange(userId, user.email);
 
   // Revoke all existing sessions for security
   await prisma.userSession.updateMany({

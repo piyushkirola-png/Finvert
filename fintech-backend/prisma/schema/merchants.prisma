@@ -50,7 +50,6 @@ model Merchant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  auditLogs               AuditLog[]
   users                   User[]
   merchantRates           MerchantRate[]
   merchantDocuments       MerchantDocument[]
@@ -70,6 +69,7 @@ model Merchant {
   refunds                 Refund[]
   bulkUploads             BulkUpload[]
   scheduledTasks          ScheduledTask[]
+  supportTickets SupportTicket[]
 
   @@index([status])
   @@index([createdAt])

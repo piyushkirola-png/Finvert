@@ -33,6 +33,7 @@ const settlementRoutes = require("./src/routes/settlements.routes");
 const chargebackRoutes = require("./src/routes/chargebacks.routes");
 const refundRoutes = require("./src/routes/refunds.routes");
 const csvExportRoutes = require("./src/routes/csv-export.routes");
+const supportRoutes = require("./src/routes/support.routes");
 const currencyMiddleware = require("./src/middleware/currency.middleware");
 const queueService = require("./src/queue/queue.service");
 
@@ -143,6 +144,7 @@ app.use("/api/webhooks", webhookRoutes);
 app.use("/api/settlements", settlementRoutes);
 app.use("/api/chargebacks", chargebackRoutes);
 app.use("/api/refunds", refundRoutes);
+app.use("/api/support", supportRoutes);
 app.use("/uploads", express.static("uploads"));
 
 // TEST ROUTES (skip rate limiting)

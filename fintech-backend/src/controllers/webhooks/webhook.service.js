@@ -8,7 +8,6 @@ const {
 } = require("@prisma/client");
 const crypto = require("crypto");
 const prisma = require("../../../config/prisma");
-const auditLogService = require("../../services/audit-log.service");
 
 // Import webhook handlers
 const fiatPayWebhook = require("./Integrations/fiatpay.webhook");
@@ -179,12 +178,6 @@ class WebhookService {
             createdAt: new Date(),
           },
         });
-
-        await auditLogService.logWebhookReceived(
-          gatewayName,
-          eventId || "unknown",
-          { eventId, transactionId },
-        );
 
         try {
           let processedData;
@@ -385,23 +378,6 @@ class WebhookService {
               },
             });
 
-            await auditLogService.log({
-              action: "WEBHOOK_PROCESSED",
-              resource: "Webhook",
-              userId: null,
-              merchantId: payoutRequest.merchantId,
-              requestId: payoutRequest.id,
-              description: `Payout webhook from ${gatewayName} processed for request ${payoutRequest.id}`,
-              status: "SUCCESS",
-              details: {
-                eventId,
-                transactionId,
-                gateway: gatewayName,
-                merchantReference: processedData.merchantReference,
-                payoutStatus: processedData.status,
-              },
-            });
-
             return { success: true };
           }
 
@@ -443,20 +419,6 @@ class WebhookService {
                     gatewayReference: processedData.gatewayReference,
                   },
                   processedAt: new Date(),
-                },
-              });
-
-              await auditLogService.log({
-                action: "WEBHOOK_ACKNOWLEDGED",
-                resource: "Webhook",
-                userId: null,
-                description: `Webhook from ${gatewayName} acknowledged - no matching request`,
-                status: "ACKNOWLEDGED",
-                details: {
-                  eventId,
-                  transactionId,
-                  gateway: gatewayName,
-                  merchantReference: processedData.merchantReference,
                 },
               });
 
@@ -541,23 +503,6 @@ class WebhookService {
               },
             });
 
-            await auditLogService.log({
-              action: "WEBHOOK_PROCESSED",
-              resource: "Webhook",
-              userId: null,
-              merchantId: payInRequest.merchantId,
-              requestId: payInRequest.id,
-              description: `Webhook from ${gatewayName} processed successfully for request ${payInRequest.id}`,
-              status: "SUCCESS",
-              details: {
-                eventId,
-                transactionId,
-                gateway: gatewayName,
-                merchantReference: processedData.merchantReference,
-                status: processedData.status,
-              },
-            });
-
             return { success: true };
           } else {
             await prisma.inboundLog.update({
@@ -571,19 +516,6 @@ class WebhookService {
                 processedAt: new Date(),
               },
             });
-
-            await auditLogService.log({
-              action: "WEBHOOK_ACKNOWLEDGED",
-              resource: "Webhook",
-              userId: null,
-              description: `Webhook from ${gatewayName} acknowledged - missing reference`,
-              status: "ACKNOWLEDGED",
-              details: {
-                eventId,
-                transactionId,
-                gateway: gatewayName,
-              },
-            });
           }
 
           return { success: true };
@@ -595,20 +527,6 @@ class WebhookService {
               status: WebhookStatus.FAILED,
               responseBody: { error: error.message },
               processedAt: new Date(),
-            },
-          });
-
-          await auditLogService.log({
-            action: "WEBHOOK_ERROR",
-            resource: "Webhook",
-            userId: null,
-            description: `Webhook from ${gatewayName} failed: ${error.message}`,
-            status: "ERROR",
-            details: {
-              eventId,
-              transactionId,
-              gateway: gatewayName,
-              error: error.message,
             },
           });
 
@@ -678,81 +596,10 @@ class WebhookService {
           },
         });
 
-        await auditLogService.log({
-          action: "CHARGEBACK_ALREADY_PROCESSED",
-          resource: "Chargeback",
-          userId: null,
-          merchantId: processedData.metadata?.merchantId,
-          requestId: processedData.chargebackId,
-          description: `Chargeback already processed from ${gatewayName} webhook`,
-          status: "SUCCESS",
-          details: {
-            chargebackId: processedData.chargebackId,
-            gateway: gatewayName,
-          },
-        });
-
         return;
       }
 
-      // if (processedData.chargebackId) {
-      //   const updated = await prisma.chargeback.update({
-      //     where: { id: processedData.chargebackId },
-      //     data: {
-      //       status:
-      //         processedData.status === "REVERSED"
-      //           ? ChargebackStatus.REVERSED
-      //           : ChargebackStatus.DISPUTED,
-      //       resolvedAt: processedData.status === "REVERSED" ? new Date() : null,
-      //       notes: `Updated via webhook from ${gatewayName}. Status: ${processedData.status}. Manual admin action required for wallet changes.`,
-      //     },
-      //   });
-
-      //   await prisma.chargebackLog.create({
-      //     data: {
-      //       chargebackId: updated.id,
-      //       action: "STATUS_UPDATED",
-      //       statusAfter: updated.status,
-      //       description: `Chargeback status updated via ${gatewayName} webhook to ${updated.status}. Wallet NOT debited - requires manual admin approval.`,
-      //     },
-      //   });
-
-      //   await prisma.inboundLog.update({
-      //     where: { id: webhookLog.id },
-      //     data: {
-      //       status: WebhookStatus.SUCCESS,
-      //       responseBody: {
-      //         success: true,
-      //         chargebackId: updated.id,
-      //         message:
-      //           "Status updated. Manual admin approval required for wallet debit.",
-      //       },
-      //       processedAt: new Date(),
-      //     },
-      //   });
-
-      //   await auditLogService.log({
-      //     action: "CHARGEBACK_STATUS_UPDATED",
-      //     resource: "Chargeback",
-      //     userId: null,
-      //     merchantId: updated.merchantId,
-      //     requestId: updated.id,
-      //     description: `Chargeback status updated via ${gatewayName} webhook to ${updated.status}`,
-      //     status: "SUCCESS",
-      //     details: {
-      //       chargebackId: updated.id,
-      //       status: updated.status,
-      //       gateway: gatewayName,
-      //     },
-      //   });
-
-      //   return;
-      // }
-
       if (processedData.chargebackId) {
-        // processedData.chargebackId is the *gateway* chargeback id (string).
-        // Only update if we already know it — otherwise fall through to the
-        // creation branch below so a brand-new dispute gets inserted.
         const existing = await prisma.chargeback.findFirst({
           where: { gatewayChargebackId: String(processedData.chargebackId) },
           include: { payInRequest: true },
@@ -821,21 +668,6 @@ class WebhookService {
                 message: "Status updated",
               },
               processedAt: new Date(),
-            },
-          });
-
-          await auditLogService.log({
-            action: "CHARGEBACK_STATUS_UPDATED",
-            resource: "Chargeback",
-            userId: null,
-            merchantId: updated.merchantId,
-            requestId: updated.id,
-            description: `Chargeback status updated via ${gatewayName} webhook to ${updated.status}`,
-            status: "SUCCESS",
-            details: {
-              chargebackId: updated.id,
-              status: updated.status,
-              gateway: gatewayName,
             },
           });
 
@@ -976,14 +808,6 @@ class WebhookService {
           },
         });
 
-        await auditLogService.logChargeback(
-          null,
-          payInRequest.merchantId,
-          chargeback.id,
-          chargeback.amount,
-          "DISPUTED",
-        );
-
         return;
       }
 
@@ -1032,7 +856,6 @@ class WebhookService {
               : RefundStatus.PENDING;
 
         // Use the same method refunds.service.js uses, so logic stays in one place
-        // (this handles status update + wallet debit atomically, with idempotency)
         const updated = await refundsService.updateStatusFromWebhook(
           processedData.refundId,
           mappedStatus,
@@ -1047,14 +870,6 @@ class WebhookService {
             processedAt: new Date(),
           },
         });
-
-        await auditLogService.logRefund(
-          null,
-          updated.merchantId,
-          updated.id,
-          updated.amount,
-          updated.status,
-        );
 
         return;
       }
@@ -1120,14 +935,6 @@ class WebhookService {
               processedAt: new Date(),
             },
           });
-
-          await auditLogService.logRefund(
-            null,
-            payInRequest.merchantId,
-            refund.id,
-            refund.amount,
-            refund.status,
-          );
 
           return;
         } else {

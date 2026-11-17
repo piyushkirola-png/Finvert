@@ -62,7 +62,6 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -93,7 +92,6 @@ export default function Login() {
 
     try {
       setLoading(true);
-      setErrorMessage("");
       await login({ email, password }, role);
       setShowSuccess(true);
       refreshCaptcha();
@@ -102,11 +100,12 @@ export default function Login() {
         2000,
       );
     } catch (error: any) {
-      setErrorMessage(
+      const message =
         error?.response?.data?.message ||
         error?.message ||
-        "Invalid credentials",
-      );
+        "Invalid credentials";
+
+      toast.error(message);
       refreshCaptcha();
       setLoading(false);
     }
@@ -114,7 +113,6 @@ export default function Login() {
 
   const switchRole = () => {
     setRole(isAdmin ? "USER" : "ADMIN");
-    setErrorMessage("");
     setEmail("");
     setPassword("");
     setShowPassword(false);
@@ -217,15 +215,6 @@ export default function Login() {
           className={inputCls}
         />
       </div>
-    </div>
-  );
-
-  const errorBox = errorMessage && (
-    <div
-      role="alert"
-      className="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium border border-red-100"
-    >
-      {errorMessage}
     </div>
   );
 
@@ -450,15 +439,14 @@ export default function Login() {
                   {emailField}
                   {passwordField}
                   {captchaField}
-                  {errorBox}
                   <button
                     type="submit"
                     disabled={loading || !canSubmit}
                     className={`w-full py-3.5 rounded-lg font-bold text-[15px] text-white transition-colors ${loading
-                        ? "bg-[#6B3FE0]/60 cursor-not-allowed"
-                        : canSubmit
-                          ? "bg-[#6B3FE0] hover:bg-[#5a31c9]"
-                          : "bg-[#6B3FE0]/40 cursor-not-allowed"
+                      ? "bg-[#6B3FE0]/60 cursor-not-allowed"
+                      : canSubmit
+                        ? "bg-[#6B3FE0] hover:bg-[#5a31c9]"
+                        : "bg-[#6B3FE0]/40 cursor-not-allowed"
                       }`}
                   >
                     {loading ? "Authenticating..." : "Enter Dashboard"}
@@ -524,15 +512,14 @@ export default function Login() {
                     {emailField}
                     {passwordField}
                     {captchaField}
-                    {errorBox}
                     <button
                       type="submit"
                       disabled={loading || !canSubmit}
                       className={`w-full py-3.5 rounded-lg font-semibold text-[15px] text-white transition-colors ${loading
-                          ? "bg-blue-300 cursor-not-allowed"
-                          : canSubmit
-                            ? "bg-blue-500 hover:bg-blue-600"
-                            : "bg-blue-300 cursor-not-allowed"
+                        ? "bg-blue-300 cursor-not-allowed"
+                        : canSubmit
+                          ? "bg-blue-500 hover:bg-blue-600"
+                          : "bg-blue-300 cursor-not-allowed"
                         }`}
                     >
                       {loading ? "Authenticating..." : "Enter Dashboard"}

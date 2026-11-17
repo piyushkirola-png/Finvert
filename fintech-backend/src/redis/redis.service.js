@@ -25,10 +25,23 @@ function buildKey(prefix, filters) {
 }
 
 async function invalidate(prefix) {
+  if (!prefix || typeof prefix !== "string") {
+    console.warn("[Redis invalidate] no prefix provided, skipping");
+    return;
+  }
+
   try {
     const redis = await getRedisClient();
-    for await (const key of redis.scanIterator({ MATCH: `${prefix}:*`, COUNT: 100 })) {
-      if (key) await redis.del(key);
+
+    for await (const batch of redis.scanIterator({
+      MATCH: `${prefix}:*`,
+      COUNT: 100,
+    })) {
+      const keys = Array.isArray(batch) ? batch : [batch];
+      const clean = keys.filter((k) => typeof k === "string" && k.length > 0);
+      if (clean.length > 0) {
+        await redis.del(clean);
+      }
     }
   } catch (e) {
     console.error("[Redis invalidate]", e.message);
