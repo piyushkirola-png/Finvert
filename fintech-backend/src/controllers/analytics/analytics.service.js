@@ -1,4 +1,5 @@
 const prisma = require("../../../config/prisma");
+const { getDateRange, startOfISTDay } = require("../../utils/ist.util");
 
 /**
  * Build WHERE clause from filters
@@ -46,96 +47,14 @@ const getTotalAmountInINR = async (whereClause) => {
 };
 
 /**
- * Get date range from filters
- */
-const getDateRange = (filters) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  let startDate = null;
-  let endDate = null;
-  const dateRange = filters.dateRange || "today";
-
-  switch (dateRange) {
-    case "today":
-      startDate = new Date(today);
-      endDate = new Date(today);
-      endDate.setDate(endDate.getDate() + 1);
-      endDate.setHours(23, 59, 59, 999);
-      break;
-
-    case "previousDay":
-      startDate = new Date(today);
-      startDate.setDate(startDate.getDate() - 1);
-      endDate = new Date(today);
-      endDate.setHours(23, 59, 59, 999);
-      break;
-
-    case "week":
-      const weekStart = new Date(today);
-      const dayOfWeek = weekStart.getDay();
-      const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-      weekStart.setDate(weekStart.getDate() - diff);
-      weekStart.setHours(0, 0, 0, 0);
-
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-      weekEnd.setHours(23, 59, 59, 999);
-
-      startDate = weekStart;
-      endDate = weekEnd;
-      break;
-
-    case "month":
-      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-      const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      monthEnd.setHours(23, 59, 59, 999);
-
-      startDate = monthStart;
-      endDate = monthEnd;
-      break;
-
-    case "last3months":
-      const threeMonthsAgo = new Date(today);
-      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-      threeMonthsAgo.setHours(0, 0, 0, 0);
-
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(23, 59, 59, 999);
-
-      startDate = threeMonthsAgo;
-      endDate = yesterday;
-      break;
-
-    case "custom":
-      if (filters.customStartDate && filters.customEndDate) {
-        startDate = new Date(filters.customStartDate);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(filters.customEndDate);
-        endDate.setHours(23, 59, 59, 999);
-      }
-      break;
-
-    default:
-      startDate = new Date(today);
-      endDate = new Date(today);
-      endDate.setDate(endDate.getDate() + 1);
-      endDate.setHours(23, 59, 59, 999);
-  }
-
-  return { startDate, endDate };
-};
-
-/**
  * Get days array between start and end date
  */
 const getDaysArray = (startDate, endDate) => {
   const days = [];
-  const current = new Date(startDate);
-  while (current < endDate) {
-    days.push(new Date(current));
-    current.setDate(current.getDate() + 1);
+  let cur = new Date(startDate);
+  while (cur < endDate) {
+    days.push(new Date(cur));
+    cur = new Date(cur.getTime() + 86400000);
   }
   return days;
 };
@@ -145,18 +64,8 @@ const getDaysArray = (startDate, endDate) => {
  */
 const getHoursArray = (startDate, endDate) => {
   const allowedHours = [7, 9, 11, 13, 15, 17, 19, 21, 23];
-
-  // base day = startDate ka local calendar date
-  const baseDay = new Date(startDate);
-  baseDay.setHours(0, 0, 0, 0);
-
-  const hours = [];
-  for (const h of allowedHours) {
-    const slot = new Date(baseDay);
-    slot.setHours(h, 0, 0, 0);
-    hours.push(slot);
-  }
-  return hours;
+  const baseDay = startOfISTDay(new Date(startDate));
+  return allowedHours.map((h) => new Date(baseDay.getTime() + h * 3600000));
 };
 
 /**
@@ -178,10 +87,10 @@ const getTransactionVolume = async (filters) => {
   const chargebackData = [];
 
   for (const day of days) {
-    const nextDay = new Date(day);
-    nextDay.setDate(nextDay.getDate() + 1);
+    const nextDay = new Date(day.getTime() + 86400000);
     dates.push(
       day.toLocaleDateString("en-US", {
+        timeZone: "Asia/Kolkata",
         weekday: "short",
         month: "short",
         day: "numeric",
@@ -392,9 +301,9 @@ const getHourlyVolume = async (filters) => {
   const chargebackData = [];
 
   for (const hour of hours) {
-    const nextHour = new Date(hour);
-    nextHour.setHours(nextHour.getHours() + 2);
+    const nextHour = new Date(hour.getTime() + 2 * 3600000);
     const label = hour.toLocaleTimeString("en-US", {
+      timeZone: "Asia/Kolkata",
       hour: "numeric",
       hour12: true,
     });
@@ -496,7 +405,11 @@ const getHourlyVolume = async (filters) => {
 
   return {
     hours: hours.map((h) =>
-      h.toLocaleTimeString("en-US", { hour: "numeric", hour12: true }),
+      h.toLocaleTimeString("en-US", {
+        timeZone: "Asia/Kolkata",
+        hour: "numeric",
+        hour12: true,
+      }),
     ),
     payin: {
       success: payinSuccess,

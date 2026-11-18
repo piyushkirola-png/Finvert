@@ -12,6 +12,7 @@ const {
 } = require("@prisma/client");
 const axios = require("axios");
 const prisma = require("../../../config/prisma");
+const { startOfISTDay, addDays } = require("../../utils/ist.util");
 const { encrypt, decrypt } = require("../../utils/encryption.util");
 
 // INTEGRATION IMPORTS
@@ -775,7 +776,7 @@ class PayoutRequestsService {
               type: TransactionType.DEBIT,
               description: `Payout completed after refund - ${request.merchantReference}`,
               transactionId: `${this._holdId(request)}-REDEBIT`,
-              eferenceId: String(request.id),
+              referenceId: String(request.id),
               allowNegative: true,
             });
           }
@@ -903,15 +904,18 @@ class PayoutRequestsService {
   // 7. UPDATE WALLET SUMMARY
   async updateWalletSummary(merchantId, userId, tx) {
     const now = new Date();
-    const startOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+    const startOfDay = startOfISTDay(now);
+    const istNow = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+    const dow = istNow.getUTCDay();
+    const diff = dow === 0 ? 6 : dow - 1;
+    const startOfWeekIST = addDays(startOfDay, -diff);
+    const startOfMonth = new Date(
+      Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), 1) -
+        5.5 * 60 * 60 * 1000,
     );
-    const startOfWeek = new Date(startOfDay);
-    startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const startOfYear = new Date(
+      Date.UTC(istNow.getUTCFullYear(), 0, 1) - 5.5 * 60 * 60 * 1000,
+    );
 
     const totalsSince = async (since) => {
       const r = await tx.payOutRequest.aggregate({
@@ -932,7 +936,7 @@ class PayoutRequestsService {
     };
 
     const day = await totalsSince(startOfDay);
-    const week = await totalsSince(startOfWeek);
+    const week = await totalsSince(startOfWeekIST);
     const month = await totalsSince(startOfMonth);
     const year = await totalsSince(startOfYear);
 

@@ -13,6 +13,7 @@ const {
 } = require("@prisma/client");
 const crypto = require("crypto");
 const prisma = require("../../../config/prisma");
+const { startOfISTDay } = require("../../utils/ist.util");
 
 // Import Forgein Currency Exchange Rates
 const paymentOrchestrator = require("./Orchestrator/orchestrator.service");
@@ -967,11 +968,7 @@ class PayInRequestsService {
     }
 
     const now = new Date();
-    const startOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-    );
+    const startOfDay = startOfISTDay(now);
 
     const todayAmounts = await tx.payInRequest.aggregate({
       where: {
