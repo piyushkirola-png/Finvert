@@ -12,6 +12,7 @@
     "prisma:seed": "node prisma/seed.js",
     "prisma:studio": "prisma studio",
     "prisma:format": "prisma format",
+    "prisma:build": "node scripts/build-prisma.js",
     "format": "npx prettier --write \"src/**/*.js\"",
     "build": "esbuild server.js --bundle --platform=node --target=node20 --minify --outfile=dist/server.js",
     "dev:log": "nodemon src/index.js > logs/terminal-logs.txt 2>&1",

@@ -46,7 +46,6 @@ model Merchant {
   numberOfEmployees  String?
   bankAccountType    String?
   bankAccountName    String?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

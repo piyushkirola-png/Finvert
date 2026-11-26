@@ -7,7 +7,6 @@ model GatewayFailureLog {
   failureReason   String?
   attemptNumber   Int     @default(1)
   retryable       Boolean @default(true)
-  
   createdAt       DateTime @default(now())
   
   gateway Gateway @relation(fields: [gatewayId], references: [id], onDelete: Cascade)
