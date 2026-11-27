@@ -2,7 +2,6 @@ const payInRequestsService = require("../../payin-requests/payin-requests.servic
 
 class PayinPlaygroundService {
   async createPlaygroundPayin(payload, metadata, currentUser) {
-    // Calls the exact same service as Postman/CSV
     return await payInRequestsService.create(payload, metadata, currentUser);
   }
 }

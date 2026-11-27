@@ -4,11 +4,8 @@ const gatewayMerchantMappingsController = require("../controllers/gateway-mercha
 const { authMiddleware } = require("../middleware/auth.middleware");
 const { authorize } = require("../middleware/roles.middleware");
 
-// Apply authentication and admin authorization
 router.use(authMiddleware);
 router.use(authorize("SUPER_ADMIN", "ADMIN"));
-
-// ==================== READ ROUTES ====================
 router.get("/", gatewayMerchantMappingsController.getAllMappings);
 router.get("/:id", gatewayMerchantMappingsController.getMappingById);
 router.get(
@@ -19,8 +16,6 @@ router.get(
   "/merchant/:merchantId",
   gatewayMerchantMappingsController.getMappingsByMerchant,
 );
-
-// ==================== WRITE ROUTES (NEW) ====================
 router.post("/", gatewayMerchantMappingsController.createMapping);
 router.patch("/:id", gatewayMerchantMappingsController.updateMapping);
 router.delete("/:id", gatewayMerchantMappingsController.deleteMapping);

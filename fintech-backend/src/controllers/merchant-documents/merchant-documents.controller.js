@@ -108,8 +108,6 @@ const updateDocumentStatus = async (req, res) => {
 const deleteDocument = async (req, res) => {
   try {
     const { merchantId, type, customName } = req.params;
-
-    // If customName is "null" string, convert to null
     const finalCustomName = customName === "null" ? null : customName;
 
     const result = await service.deleteDocument(

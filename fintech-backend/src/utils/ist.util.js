@@ -1,8 +1,6 @@
-// India has no daylight saving, so IST is always UTC + 5:30
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// 12:00 AM IST of the day that contains `date` (returned as a normal UTC Date)
 const startOfISTDay = (date = new Date()) =>
   new Date(
     Math.floor((date.getTime() + IST_OFFSET_MS) / DAY_MS) * DAY_MS -
@@ -18,8 +16,6 @@ const addDays = (date, n) => new Date(date.getTime() + n * DAY_MS);
 const getDateRange = (filters = {}) => {
   const todayStart = startOfISTDay();
   const tomorrowStart = addDays(todayStart, 1);
-
-  // "now" shifted by +5:30, so the getUTC... methods give IST values
   const ist = new Date(Date.now() + IST_OFFSET_MS);
   const y = ist.getUTCFullYear();
   const m = ist.getUTCMonth();
@@ -30,8 +26,8 @@ const getDateRange = (filters = {}) => {
       return { startDate: addDays(todayStart, -1), endDate: todayStart };
 
     case "week": {
-      const dow = ist.getUTCDay(); // 0 = Sunday
-      const diff = dow === 0 ? 6 : dow - 1; // week starts on Monday
+      const dow = ist.getUTCDay();
+      const diff = dow === 0 ? 6 : dow - 1;
       return {
         startDate: addDays(todayStart, -diff),
         endDate: tomorrowStart,
@@ -64,7 +60,6 @@ const getDateRange = (filters = {}) => {
         }
         return { startDate, endDate: addDays(endDay, 1) };
       }
-      // custom chosen but dates missing: use today (before, this crashed)
       return { startDate: todayStart, endDate: tomorrowStart };
     }
 

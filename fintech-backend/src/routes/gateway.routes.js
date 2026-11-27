@@ -4,7 +4,6 @@ const gatewayController = require("../controllers/gateway/gateway.controller");
 const { authMiddleware } = require("../middleware/auth.middleware");
 const { authorize } = require("../middleware/roles.middleware");
 
-// Add authentication and admin authorization
 router.use(authMiddleware);
 router.use(authorize("SUPER_ADMIN", "ADMIN"));
 

@@ -7,7 +7,6 @@ const round2 = (n) => Math.round(n * 100) / 100;
 
 /**
  * Turn a filter value into a number.
- * Empty value -> undefined (no filter). Bad value (like "abc") -> error.
  */
 const parseId = (value, name) => {
   if (value === undefined || value === null || value === "") return undefined;
@@ -64,7 +63,6 @@ const getStats = async (filters) => {
     ...(userId ? { payInRequest: { userId } } : {}),
   };
 
-  // Settlement has no gatewayId, but it has userId
   const settlementWhere = {
     status: "PENDING",
     ...(merchantId ? { merchantId } : {}),
@@ -114,12 +112,11 @@ const getStats = async (filters) => {
     }),
   ]);
 
-  // ---------- PayIn numbers ----------
   let payInTotal = 0;
   let payInSuccess = 0;
   let payInPending = 0;
   let payInFailed = 0;
-  let payInCompletedAmount = 0; // in INR
+  let payInCompletedAmount = 0;
 
   for (const g of payinGroups) {
     const count = g._count._all;
@@ -140,7 +137,6 @@ const getStats = async (filters) => {
   const averagePayIn =
     payInSuccess > 0 ? payInCompletedAmount / payInSuccess : 0;
 
-  // ---------- Payout numbers ----------
   let payoutTotal = 0;
   let payoutSuccess = 0;
   let payoutPending = 0;
@@ -304,7 +300,7 @@ const getRecentTransactions = async (filters) => {
       merchantName: tx.merchant?.name || "N/A",
       gatewayName: tx.gateway?.name || "N/A",
       amount: Number(tx.amount) || 0,
-      currency: "INR", // PayOutRequest has no currency column
+      currency: "INR",
       status: tx.status || "PENDING",
       createdAt: tx.requestedAt,
     });

@@ -8,11 +8,8 @@ const {
   updateUserValidation,
 } = require("../controllers/users/users.validation");
 
-// Auth required for all routes
 router.use(authMiddleware);
 router.put("/currency", userController.updateCurrency);
-
-// These routes require ADMIN role
 router.use(authorize("SUPER_ADMIN", "ADMIN"));
 
 router.post("/", createUserValidation, userController.createUser);

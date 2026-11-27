@@ -1,6 +1,5 @@
 const prisma = require("../../../config/prisma");
 
-// Helper function to convert service type
 const convertServiceType = (type) => {
   const typeMap = {
     payin: "PAY_IN",
@@ -15,7 +14,6 @@ const convertServiceType = (type) => {
 
 // CREATE
 const createGateway = async (data) => {
-  // Convert service type to uppercase enum value
   const serviceType = convertServiceType(data.service_type || data.serviceType);
 
   const gatewayData = {
@@ -48,8 +46,6 @@ const createGateway = async (data) => {
     throw new Error(`Gateway with name "${gatewayData.name}" already exists`);
   }
 
-  console.log("Creating gateway with data:", gatewayData); // Debug log
-
   return await prisma.gateway.create({
     data: gatewayData,
   });
@@ -61,7 +57,6 @@ const getAllGateways = async () => {
     orderBy: { id: "desc" },
   });
 
-  // ✅ Transform to frontend format (snake_case with lowercase service_type)
   return gateways.map((gateway) => ({
     id: gateway.id,
     gateway_name: gateway.name,

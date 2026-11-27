@@ -10,7 +10,6 @@ const {
 
 router.use(authMiddleware);
 router.use(authorize("ADMIN", "SUPER_ADMIN"));
-
 router.post("/", validateRiskBlock, riskBlocksController.createRiskBlock);
 router.get("/", riskBlocksController.getRiskBlocks);
 router.get("/:id", riskBlocksController.getRiskBlockById);

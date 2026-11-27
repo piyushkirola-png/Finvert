@@ -6,7 +6,6 @@ const { authorize } = require("../middleware/roles.middleware");
 
 router.use(authMiddleware);
 router.use(authorize("SUPER_ADMIN", "ADMIN"));
-
 router.get("/:merchantId", merchantRatesController.getMerchantRates);
 router.post("/", merchantRatesController.createMerchantRate);
 router.put("/:id", merchantRatesController.updateMerchantRate);

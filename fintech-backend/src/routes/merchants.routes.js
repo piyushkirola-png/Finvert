@@ -3,7 +3,6 @@ const router = express.Router();
 const merchantsController = require("../controllers/merchants/merchants.controller");
 const { authMiddleware } = require("../middleware/auth.middleware");
 const { authorize } = require("../middleware/roles.middleware");
-
 router.use(authMiddleware);
 router.get("/", merchantsController.getAllMerchants);
 router.use(authorize("SUPER_ADMIN", "ADMIN"));
@@ -36,7 +35,6 @@ router.delete(
   "/:id/whitelist-ips/:ip",
   merchantsController.deleteIpFromWhitelist,
 );
-
 router.get("/:id/webhook-config", merchantsController.getWebhookConfig);
 router.put("/:id/webhook-config", merchantsController.updateWebhookConfig);
 

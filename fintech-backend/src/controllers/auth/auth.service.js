@@ -13,7 +13,6 @@ const transporter = nodemailer.createTransport({
   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
 });
 
-// ==================== ADMIN LOGIN ====================
 const adminLogin = async (email, password) => {
   const cleanEmail = email.trim().toLowerCase();
 
@@ -75,7 +74,6 @@ const adminLogin = async (email, password) => {
   };
 };
 
-// ==================== USER REGISTER ====================
 const register = async (data) => {
   const { email, password, fullName, phoneNumber } = data;
   const cleanEmail = email.trim().toLowerCase();
@@ -137,7 +135,6 @@ const register = async (data) => {
   };
 };
 
-// ==================== USER LOGIN ====================
 const userLogin = async (data) => {
   const { email, password } = data;
   const cleanEmail = email.trim().toLowerCase();
@@ -223,7 +220,6 @@ const userLogin = async (data) => {
   };
 };
 
-// ==================== REFRESH TOKEN ====================
 const refreshToken = async (refreshToken) => {
   const decoded = verifyRefreshToken(refreshToken);
   if (!decoded) throw new Error("Invalid refresh token");
@@ -250,7 +246,6 @@ const refreshToken = async (refreshToken) => {
   return { accessToken: newAccessToken };
 };
 
-// ==================== LOGOUT ====================
 const logout = async (accessToken) => {
   const session = await prisma.userSession.findFirst({
     where: { accessToken, isRevoked: false },
@@ -265,7 +260,6 @@ const logout = async (accessToken) => {
   return { success: true };
 };
 
-// ==================== FORGOT PASSWORD ====================
 const forgotPassword = async (email, role = "user") => {
   const cleanEmail = email.trim().toLowerCase();
 
@@ -293,7 +287,6 @@ const forgotPassword = async (email, role = "user") => {
   });
 };
 
-// ==================== VERIFY OTP ====================
 const verifyOtp = async (email, otp, role = "user") => {
   const cleanEmail = email.trim().toLowerCase();
 
@@ -312,7 +305,6 @@ const verifyOtp = async (email, otp, role = "user") => {
   return { resetToken };
 };
 
-// ==================== RESET PASSWORD ====================
 const resetPassword = async (resetToken, newPassword) => {
   if (!resetToken) throw new Error("Reset token missing");
 
@@ -331,7 +323,6 @@ const resetPassword = async (resetToken, newPassword) => {
   });
 };
 
-// ==================== UPDATE PROFILE ====================
 const updateProfile = async (userId, data) => {
   const updateData = {};
   if (data.name) updateData.fullName = data.name;
@@ -395,9 +386,7 @@ const getProfile = async (userId) => {
   return user;
 };
 
-// ==================== UPDATE PASSWORD ONLY ====================
 const updatePassword = async (userId, currentPassword, newPassword) => {
-  // Get user with password
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -408,18 +397,15 @@ const updatePassword = async (userId, currentPassword, newPassword) => {
 
   if (!user) throw new Error("User not found");
 
-  // Verify current password
   const isMatch = await bcrypt.compare(currentPassword, user.hashedPassword);
   if (!isMatch) throw new Error("Current password is incorrect");
 
-  // Validate new password
   if (newPassword.length < 6) {
     throw new Error("New password must be at least 6 characters");
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-  // Update password
   await prisma.user.update({
     where: { id: userId },
     data: {
@@ -428,7 +414,6 @@ const updatePassword = async (userId, currentPassword, newPassword) => {
     },
   });
 
-  // Revoke all existing sessions for security
   await prisma.userSession.updateMany({
     where: { userId: userId, isRevoked: false },
     data: { isRevoked: true },
@@ -437,7 +422,6 @@ const updatePassword = async (userId, currentPassword, newPassword) => {
   return { success: true };
 };
 
-// ==================== EXPORTS ====================
 module.exports = {
   adminLogin,
   register,

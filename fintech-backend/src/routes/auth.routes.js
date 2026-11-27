@@ -12,14 +12,9 @@ const {
   updatePasswordValidation,
 } = require("../controllers/auth/auth.validation");
 
-// ==================== ADMIN AUTH ROUTES ====================
 router.post("/admin/login", loginValidation, authController.adminLogin);
-
-// ==================== USER AUTH ROUTES ====================
 router.post("/user/register", registerValidation, authController.register);
 router.post("/user/login", loginValidation, authController.userLogin);
-
-// ==================== COMMON AUTH ROUTES ====================
 router.post(
   "/refresh-token",
   refreshTokenValidation,

@@ -45,7 +45,6 @@ const {
   strictLimiter,
 } = require("./src/middleware/rate-limit.middleware");
 
-// ========== ERROR HANDLER IMPORT ==========
 const {
   errorHandler,
   notFoundHandler,
@@ -88,8 +87,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(compression());
 
 // ========== RATE LIMITING MIDDLEWARE ==========
-
-// Apply default rate limiting to all API routes (1000 req/min)
 app.use("/api", defaultLimiter);
 
 // Auth routes - 500 req/min (high limit for normal usage)
@@ -147,7 +144,7 @@ app.use("/api/refunds", refundRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/uploads", express.static("uploads"));
 
-// TEST ROUTES (skip rate limiting)
+// TEST ROUTES
 app.get("/", (req, res) => {
   res.send("Backend Running 🚀");
 });
@@ -160,10 +157,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// 404 handler - using the new error handler
 app.use(notFoundHandler);
-
-// Error handler - using the new error handler
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
@@ -244,7 +238,6 @@ cron.schedule(
           const ageInDays = (now - stats.mtimeMs) / (1000 * 60 * 60 * 24);
 
           if (ageInDays > retentionDays * 2) {
-            // Keep archived files longer
             fs.unlinkSync(filePath);
             console.log(`Deleted old archived file: ${file}`);
           }

@@ -62,7 +62,6 @@ const createMapping = async (req, res) => {
   try {
     const { gatewayId, merchantId, status } = req.body;
 
-    // Validation
     if (!gatewayId || !merchantId) {
       return res.status(400).json({
         success: false,

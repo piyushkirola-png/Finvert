@@ -3,7 +3,6 @@ const { once } = require("events");
 
 const pad = (n) => String(n).padStart(2, "0");
 
-// IST is UTC+5:30 with no DST, so plain arithmetic replaces Intl (much faster)
 function formatIST(date) {
   if (!date) return "";
   const d = new Date(new Date(date).getTime() + 19800000);
@@ -15,7 +14,7 @@ function formatIST(date) {
 function csvCell(value) {
   if (value === null || value === undefined) return "";
   let s = String(value);
-  if (s.startsWith("=") || s.startsWith("@")) s = "'" + s; // CSV injection guard
+  if (s.startsWith("=") || s.startsWith("@")) s = "'" + s;
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

@@ -4,16 +4,12 @@ const dashboardController = require("../controllers/dashboard/dashboard.controll
 const { authMiddleware } = require("../middleware/auth.middleware");
 const { authorize } = require("../middleware/roles.middleware");
 
-// Apply authentication middleware
 router.use(authMiddleware);
-
-// Stats endpoint for dashboard
 router.get(
   "/stats",
   authorize("SUPER_ADMIN", "ADMIN", "USER"),
   dashboardController.getStats,
 );
-
 router.get(
   "/recent-transactions",
   authorize("SUPER_ADMIN", "ADMIN", "USER"),

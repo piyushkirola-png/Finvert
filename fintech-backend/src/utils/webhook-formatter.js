@@ -49,9 +49,6 @@ const isPlainObject = (v) =>
 const isPrimitive = (v) =>
   v === null || ["string", "number", "boolean"].includes(typeof v);
 
-// ---------------------------------------------------------------------------
-// Config validation (run when an admin saves a merchant's config)
-// ---------------------------------------------------------------------------
 function validateWebhookConfig(config) {
   const errors = [];
 
@@ -84,7 +81,6 @@ function validateWebhookConfig(config) {
     return true;
   };
 
-  // fields
   if (
     !isPlainObject(config.fields) ||
     Object.keys(config.fields).length === 0
@@ -178,7 +174,6 @@ function validateWebhookConfig(config) {
     }
   }
 
-  // order (jsonb does not keep object key order, so it is stored as an array)
   if (config.order !== undefined) {
     if (!Array.isArray(config.order)) {
       errors.push(`"order" must be an array of field keys`);
@@ -194,7 +189,6 @@ function validateWebhookConfig(config) {
     }
   }
 
-  // output key conflicts, e.g. "a" and "a.b" cannot both exist
   for (let i = 0; i < outputKeys.length; i++) {
     for (let j = 0; j < outputKeys.length; j++) {
       if (i !== j && outputKeys[j].startsWith(outputKeys[i] + ".")) {
@@ -209,9 +203,6 @@ function validateWebhookConfig(config) {
   return { valid: errors.length === 0, errors };
 }
 
-// ---------------------------------------------------------------------------
-// Source builder: PayInRequest -> safe plain values
-// ---------------------------------------------------------------------------
 function buildPayInSource(payIn) {
   const src = {};
 
@@ -236,9 +227,6 @@ function buildPayInSource(payIn) {
   return src;
 }
 
-// ---------------------------------------------------------------------------
-// Formatter engine (same code for every merchant)
-// ---------------------------------------------------------------------------
 function setByPath(obj, path, value) {
   const keys = path.split(".");
   let cur = obj;
@@ -259,7 +247,6 @@ function castValue(v, type) {
   return v;
 }
 
-// Assumes the config was already validated
 function formatWithConfig(config, source) {
   const body = {};
 
@@ -300,9 +287,6 @@ function formatWithConfig(config, source) {
   return body;
 }
 
-// ---------------------------------------------------------------------------
-// Default payload + main entry point (called from payin service)
-// ---------------------------------------------------------------------------
 function buildDefaultPayInPayload(payIn, timestamp = new Date().toISOString()) {
   return {
     event: PAY_IN_EVENT,
@@ -319,7 +303,6 @@ function buildDefaultPayInPayload(payIn, timestamp = new Date().toISOString()) {
   };
 }
 
-// Returns { body, mode }: CONFIG | DEFAULT | FALLBACK_DEFAULT | SKIPPED (body null)
 function buildMerchantWebhook(merchant, payIn) {
   const tag = `[WebhookFormatter][merchant:${merchant?.id}]`;
   const timestamp = new Date().toISOString();
@@ -359,9 +342,6 @@ function buildMerchantWebhook(merchant, payIn) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Helpers for admin API / frontend preview
-// ---------------------------------------------------------------------------
 const SAMPLE_PAY_IN = {
   id: 27,
   merchantReference: "ORD-xa123432327890",

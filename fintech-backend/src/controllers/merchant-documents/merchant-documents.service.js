@@ -22,7 +22,6 @@ const uploadDocument = async (data) => {
       },
     });
   } else {
-    // Use findFirst instead of findUnique
     existing = await prisma.merchantDocument.findFirst({
       where: {
         merchantId,

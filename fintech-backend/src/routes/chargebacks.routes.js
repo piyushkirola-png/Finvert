@@ -12,7 +12,6 @@ const {
   getChargebacksValidation,
 } = require("../controllers/chargebacks/chargebacks.validation");
 
-// AUTHORIZATION MIDDLEWARE
 const forceMerchantAccess = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
@@ -34,48 +33,35 @@ const forceMerchantAccess = (req, res, next) => {
   next();
 };
 
-// Apply auth middleware to all routes
 router.use(authMiddleware);
-
-// ----- GET /stats - Get statistics -----
 router.get(
   "/stats",
   forceMerchantAccess,
   chargebacksController.getChargebackStats,
 );
-
-// ----- GET /export/csv - Export to CSV -----
 router.get(
   "/export/csv",
   forceMerchantAccess,
   chargebacksController.exportChargebacksCSV,
 );
-
-// ----- POST / - Initiate chargeback -----
 router.post(
   "/",
   forceMerchantAccess,
   initiateChargebackValidation,
   chargebacksController.initiateChargeback,
 );
-
-// ----- GET / - Get all chargebacks -----
 router.get(
   "/",
   forceMerchantAccess,
   getChargebacksValidation,
   chargebacksController.getAllChargebacks,
 );
-
-// ----- GET /:id - Get single chargeback (DYNAMIC - Goes LAST) -----
 router.get(
   "/:id",
   forceMerchantAccess,
   getChargebackValidation,
   chargebacksController.getChargebackById,
 );
-
-// ----- PATCH /:id/status - Admin only -----
 router.patch(
   "/:id/status",
   (req, res, next) => {
@@ -93,16 +79,12 @@ router.patch(
   updateChargebackStatusValidation,
   chargebacksController.updateChargebackStatus,
 );
-
-// ----- POST /:id/respond - Respond to dispute (MERCHANT allowed) -----
 router.post(
   "/:id/respond",
   forceMerchantAccess,
   respondToChargebackValidation,
   chargebacksController.respondToChargeback,
 );
-
-// ----- POST /:id/resolve - Admin only -----
 router.post(
   "/:id/resolve",
   (req, res, next) => {
@@ -120,8 +102,6 @@ router.post(
   resolveDisputeValidation,
   chargebacksController.resolveDispute,
 );
-
-// ----- POST /:id/reverse - Admin only -----
 router.post(
   "/:id/reverse",
   (req, res, next) => {

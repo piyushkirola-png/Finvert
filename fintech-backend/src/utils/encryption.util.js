@@ -71,7 +71,7 @@ const isEncrypted = (text) => {
  */
 const encryptIpList = (ips) => {
   if (!ips || !Array.isArray(ips) || ips.length === 0) return [];
-  return ips.map((ip) => encrypt(ip)).filter((encrypted) => encrypted !== null); // ← FILTER NULLS
+  return ips.map((ip) => encrypt(ip)).filter((encrypted) => encrypted !== null);
 };
 
 /**
@@ -79,7 +79,7 @@ const encryptIpList = (ips) => {
  */
 const decryptIpList = (ips) => {
   if (!ips || !Array.isArray(ips) || ips.length === 0) return [];
-  return ips.map((ip) => decrypt(ip)).filter((decrypted) => decrypted !== null); // ← FILTER NULLS
+  return ips.map((ip) => decrypt(ip)).filter((decrypted) => decrypted !== null);
 };
 
 module.exports = {

@@ -15,8 +15,6 @@ class CsvExportService {
     }
   }
 
-  // ---------- request / worker ----------
-
   async requestCsvExport(user, exportType, options = {}) {
     const { merchantId, startDate, endDate, filters, sorts } = options;
 
@@ -141,8 +139,6 @@ class CsvExportService {
     return csvExport.fileUrl;
   }
 
-  // ---------- shared helpers ----------
-
   scopeWhere(user, merchantId, { byUser = true } = {}) {
     const where = {};
     if (user.role === "USER") {
@@ -162,11 +158,6 @@ class CsvExportService {
     if (endDate) where[field].lte = new Date(endDate);
   }
 
-  /**
-   * allowed: properties valid for this model (anything else is ignored,
-   * so a stray filter can never crash Prisma).
-   * USER role can never override its own merchantId / userId scope.
-   */
   applyFilters(where, filters, allowed, user, searchFn) {
     if (!Array.isArray(filters)) return;
     const isUser = user.role === "USER";
@@ -201,7 +192,7 @@ class CsvExportService {
         case "search":
           if (searchFn) Object.assign(where, searchFn(value));
           break;
-        default: // status, paymentMode, feeType, type, approvalStatus
+        default:
           where[property] = value;
       }
     }
@@ -220,8 +211,6 @@ class CsvExportService {
     };
   }
 
-  // Keyset pagination: WHERE id > lastId ORDER BY id LIMIT n.
-  // Same speed on page 1 and page 160, unlike skip/take.
   streamModel({ model, where, query, columns, filePath }) {
     return streamCsv({
       filePath,
@@ -290,8 +279,6 @@ class CsvExportService {
   walletSearch(value) {
     return { description: { contains: value, mode: "insensitive" } };
   }
-
-  // ---------- PAYIN REQUESTS ----------
 
   async exportPayInRequests({
     user,
@@ -383,13 +370,11 @@ class CsvExportService {
           completedAt: true,
           createdAt: true,
           metadata: true,
-          responseLog: true, // only used to extract UTR
+          responseLog: true,
         },
       },
     });
   }
-
-  // ---------- PAYOUT REQUESTS ----------
 
   async exportPayOutRequests({
     user,
@@ -473,8 +458,6 @@ class CsvExportService {
     });
   }
 
-  // ---------- WALLETS (payin + payout share one builder) ----------
-
   async buildWalletExport(
     model,
     extraColumn,
@@ -553,8 +536,6 @@ class CsvExportService {
     );
   }
 
-  // ---------- SETTLEMENTS ----------
-
   async exportSettlements({ user, merchantId, filters, filePath }) {
     const where = this.scopeWhere(user, merchantId);
     this.applyFilters(
@@ -619,8 +600,6 @@ class CsvExportService {
       },
     });
   }
-
-  // ---------- CHARGEBACKS ----------
 
   async exportChargebacks({ user, merchantId, filters, filePath }) {
     const where = this.scopeWhere(user, merchantId, { byUser: false });
@@ -689,8 +668,6 @@ class CsvExportService {
       },
     });
   }
-
-  // ---------- REFUNDS ----------
 
   async exportRefunds({ user, merchantId, filters, filePath }) {
     const where = this.scopeWhere(user, merchantId, { byUser: false });

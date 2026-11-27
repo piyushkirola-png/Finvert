@@ -4,11 +4,8 @@ const merchantRoutingController = require("../controllers/merchant-routing/merch
 const { authMiddleware } = require("../middleware/auth.middleware");
 const { authorize } = require("../middleware/roles.middleware");
 
-// Apply authentication and admin authorization
 router.use(authMiddleware);
 router.use(authorize("SUPER_ADMIN", "ADMIN"));
-
-// Merchant Routing Routes
 router.post("/", merchantRoutingController.createMerchantRouting);
 router.get("/", merchantRoutingController.getAllMerchantRouting);
 router.get("/:id", merchantRoutingController.getMerchantRoutingById);

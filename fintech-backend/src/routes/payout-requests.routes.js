@@ -12,7 +12,6 @@ const {
 } = require("../controllers/payout-requests/payout-requests.validation");
 
 router.use(authMiddleware);
-
 router.post(
   "/",
   authorize("USER", "ADMIN", "SUPER_ADMIN"),
@@ -20,46 +19,39 @@ router.post(
   createPayoutRequestValidation,
   payoutRequestsController.create,
 );
-
 router.get(
   "/",
   authorize("USER", "ADMIN", "SUPER_ADMIN"),
   getPayoutRequestsValidation,
   payoutRequestsController.findAll,
 );
-
 router.get(
   "/stats",
   authorize("USER", "ADMIN", "SUPER_ADMIN"),
   payoutRequestsController.getDashboardStats,
 );
-
 router.get(
   "/:id",
   authorize("USER", "ADMIN", "SUPER_ADMIN"),
   getPayoutRequestValidation,
   payoutRequestsController.findOne,
 );
-
 router.patch(
   "/:id",
   authorize("ADMIN", "SUPER_ADMIN"),
   updatePayoutRequestValidation,
   payoutRequestsController.update,
 );
-
 router.delete(
   "/:id",
   authorize("ADMIN", "SUPER_ADMIN"),
   payoutRequestsController.remove,
 );
-
 router.post(
   "/:id/retry",
   authorize("ADMIN", "SUPER_ADMIN"),
   payoutRequestsController.retry,
 );
-
 router.get(
   "/export/csv",
   authMiddleware,

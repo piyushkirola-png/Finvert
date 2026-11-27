@@ -13,7 +13,6 @@ const buildFilters = (req) => {
     customEndDate: req.query.customEndDate,
   };
 
-  // If user is USER, scope to their merchant + userId
   if (req.user && req.user.role === "USER") {
     filters.merchantId = req.user.merchantId;
     filters.userId = req.user.id;

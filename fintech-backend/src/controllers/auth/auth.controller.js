@@ -1,7 +1,6 @@
 const { get } = require("../../routes/auth.routes");
 const authService = require("./auth.service");
 
-// ==================== ADMIN AUTH ====================
 const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -21,7 +20,6 @@ const adminLogin = async (req, res) => {
   }
 };
 
-// ==================== USER AUTH ====================
 const register = async (req, res) => {
   try {
     const result = await authService.register(req.body);
@@ -48,7 +46,6 @@ const userLogin = async (req, res) => {
   }
 };
 
-// ==================== COMMON AUTH ====================
 const refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
